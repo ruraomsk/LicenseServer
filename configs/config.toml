@@ -9,4 +9,5 @@ db_password = "162747"
 db_user = "postgres"
 db_type = "postgres"
 db_host = "localhost"
-
+db_MaxOpen = 30
+db_MaxIdle = 10

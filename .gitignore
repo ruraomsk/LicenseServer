@@ -7,3 +7,10 @@
 
 logfiles
 logfiles/**
+
+/web/
+/web/**
+/web/html/
+/web/html/**
+/web/resources/
+/web/resources/**

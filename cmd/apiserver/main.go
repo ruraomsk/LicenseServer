@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/BurntSushi/toml"
+	"github.com/JanFant/LicenseServer/internal/app/apiserver"
 	"github.com/JanFant/LicenseServer/internal/app/config"
 	"github.com/JanFant/LicenseServer/internal/app/db"
 	"github.com/JanFant/TLServer/logger"
@@ -22,14 +23,21 @@ func init() {
 }
 
 func main() {
-	fmt.Println(config.GlobalConfig)
 	if err := logger.Init(config.GlobalConfig.LogPath); err != nil {
 		fmt.Println("Error opening logger subsystem ", err.Error())
 		return
 	}
 
-	_, err := db.ConnectDB()
+	db, err := db.ConnectDB()
 	if err != nil {
-		fmt.Println("DB ERRRRRRORRR")
+		logger.Error.Println("|Message: Error open DB", err.Error())
+		fmt.Println("Error open DB ", err.Error())
+		return
 	}
+	defer db.Close()
+
+	fmt.Println("Server started...")
+	logger.Info.Println("|Message: Server started...")
+
+	apiserver.StartServer(db, config.GlobalConfig.ServerPort)
 }
