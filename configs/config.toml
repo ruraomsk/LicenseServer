@@ -1,0 +1,12 @@
+#Toml configs
+
+server_port = ":8085"
+log_path = "logfiles"
+
+[database]
+db_name = "agserv"
+db_password = "162747"
+db_user = "postgres"
+db_type = "postgres"
+db_host = "localhost"
+
