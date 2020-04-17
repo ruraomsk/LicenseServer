@@ -27,14 +27,16 @@ var (
 		phone text,
 		email text
 	);`
+	db *sqlx.DB
 )
 
 //ConnectDB соединение с дб
 func ConnectDB() (*sqlx.DB, error) {
-	db, err := sqlx.Open(config.GlobalConfig.DBConfig.Type, config.GlobalConfig.DBConfig.GetUrl())
+	conn, err := sqlx.Open(config.GlobalConfig.DBConfig.Type, config.GlobalConfig.DBConfig.GetUrl())
 	if err != nil {
 		return nil, err
 	}
+	db = conn
 	if err = db.Ping(); err != nil {
 		return nil, err
 	}
@@ -55,4 +57,9 @@ func ConnectDB() (*sqlx.DB, error) {
 		db.MustExec(customerTable)
 	}
 	return db, nil
+}
+
+//GetDB обращение к БД
+func GetDB() *sqlx.DB {
+	return db
 }

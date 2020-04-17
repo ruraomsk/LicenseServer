@@ -38,6 +38,6 @@ func main() {
 
 	fmt.Println("Server started...")
 	logger.Info.Println("|Message: Server started...")
-
-	apiserver.StartServer(db, config.GlobalConfig.ServerPort)
+	var serverConf = apiserver.ServerConf{DB: db, Port: config.GlobalConfig.ServerPort}
+	apiserver.StartServer(serverConf)
 }

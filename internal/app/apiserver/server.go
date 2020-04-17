@@ -8,7 +8,12 @@ import (
 	"net/http"
 )
 
-func StartServer(db *sqlx.DB, port string) {
+type ServerConf struct {
+	DB   *sqlx.DB
+	Port string
+}
+
+func StartServer(conf ServerConf) {
 	router := gin.Default()
 
 	router.LoadHTMLGlob("./web/html/**")
@@ -16,14 +21,15 @@ func StartServer(db *sqlx.DB, port string) {
 		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
 	})
 
-	router.GET("/hello", func(c *gin.Context) {
-		c.String(http.StatusOK, "Gin Hello")
-	})
+	mainRouter := router.Group("/main")
 
-	router.StaticFS("/dir", http.Dir("./logfiles"))
-	router.StaticFS("/static", http.Dir("./web/resources"))
+	mainRouter.POST("/createCustomer", createCustomer)
 
-	if err := router.Run(port); err != nil {
+	fileServer := router.Group("/fileServer")
+	fileServer.StaticFS("/dir", http.Dir("./logfiles"))
+	fileServer.StaticFS("/static", http.Dir("./web/resources"))
+
+	if err := router.Run(conf.Port); err != nil {
 		logger.Error.Println("|Message: Error start server ", err.Error())
 		fmt.Println("Error start server ", err.Error())
 	}
