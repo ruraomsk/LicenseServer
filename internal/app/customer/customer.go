@@ -31,14 +31,20 @@ func (customer *Customer) Create() error {
 		return err
 	}
 	var id int
-	err := db.GetDB().Select(&id, "SELECT id FROM public.customers WHERE email = ? OR name = ?", customer.Email, customer.Name)
+	row, err := db.GetDB().NamedQuery(`SELECT id FROM public.customers WHERE email = :email OR name = :name`, customer)
 	if err != nil {
 		return err
 	}
-	if id != 0 {
-		return errors.New("customer must be unique")
+	for row.Next() {
+		_ = row.Scan(&id)
+		if id > 0 {
+			return errors.New("this customer has already been created")
+		}
 	}
 
-	db.GetDB().MustExec("INSERT INTO public.customers (name,address,phone,email) VALUES (:name,:address,phone,email)", &customer)
+	_, err = db.GetDB().NamedExec(`INSERT INTO public.customers (name,address,phone,email) VALUES (:name,:address,:phone,:email)`, customer)
+	if err != nil {
+		return err
+	}
 	return nil
 }

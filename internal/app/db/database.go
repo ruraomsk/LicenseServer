@@ -11,7 +11,7 @@ import (
 var (
 	licenseTable = `
 	CREATE TABLE license (
-		id integer PRIMARY KEY,
+		id serial PRIMARY KEY,
 		numDev integer NOT NULL,
 		yaKey text,
 		tokenPass text,
@@ -20,7 +20,7 @@ var (
 	);`
 	customerTable = `
 	CREATE TABLE customers (
-		id integer PRIMARY KEY,
+		id serial PRIMARY KEY,
 		name text,
 		address text,
 		servers integer[],
