@@ -28,16 +28,16 @@ func main() {
 		return
 	}
 
-	db, err := db.ConnectDB()
+	dbConn, err := db.ConnectDB()
 	if err != nil {
 		logger.Error.Println("|Message: Error open DB", err.Error())
 		fmt.Println("Error open DB ", err.Error())
 		return
 	}
-	defer db.Close()
+	defer dbConn.Close()
 
 	fmt.Println("Server started...")
 	logger.Info.Println("|Message: Server started...")
-	var serverConf = apiserver.ServerConf{DB: db, Port: config.GlobalConfig.ServerPort}
+	var serverConf = apiserver.ServerConf{DB: dbConn, Port: config.GlobalConfig.ServerPort}
 	apiserver.StartServer(serverConf)
 }

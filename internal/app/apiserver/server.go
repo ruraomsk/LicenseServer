@@ -3,6 +3,7 @@ package apiserver
 import (
 	"fmt"
 	"github.com/JanFant/TLServer/logger"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
 	"net/http"
@@ -16,6 +17,8 @@ type ServerConf struct {
 func StartServer(conf ServerConf) {
 	router := gin.Default()
 
+	router.Use(cors.Default())
+
 	router.LoadHTMLGlob("./web/html/**")
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
@@ -23,6 +26,10 @@ func StartServer(conf ServerConf) {
 
 	mainRouter := router.Group("/main")
 
+	mainRouter.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
+	})
+	mainRouter.POST("/", allCustomers)
 	mainRouter.POST("/createCustomer", createCustomer)
 
 	fileServer := router.Group("/fileServer")

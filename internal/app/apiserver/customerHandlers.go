@@ -1,7 +1,7 @@
 package apiserver
 
 import (
-	"github.com/JanFant/LicenseServer/internal/app/customer"
+	"github.com/JanFant/LicenseServer/internal/model/customer"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -12,9 +12,11 @@ var createCustomer = func(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
 		return
 	}
-	if err := newCustomer.Create(); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
-		return
-	}
-	c.JSON(http.StatusOK, gin.H{"message": newCustomer})
+	resp := newCustomer.Create()
+	c.JSON(resp.Code, resp.Obj)
+}
+
+var allCustomers = func(c *gin.Context) {
+	resp := customer.GetAllCustomers()
+	c.JSON(resp.Code, resp.Obj)
 }
