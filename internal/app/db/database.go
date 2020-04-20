@@ -12,11 +12,11 @@ var (
 	licenseTable = `
 	CREATE TABLE license (
 		id serial PRIMARY KEY,
-		numDev integer NOT NULL,
-		yaKey text,
-		tokenPass text,
+		numdev integer NOT NULL,
+		yakey text,
+		tokenpass text,
 		token text,	
-		endTime timestamp with time zone
+		endtime timestamp with time zone
 	);`
 	customerTable = `
 	CREATE TABLE customers (

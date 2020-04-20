@@ -15,7 +15,7 @@ var createLicense = func(c *gin.Context) {
 	}
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "id : cannot be blank"})
 		return
 	}
 	resp := newLicense.CreateLicense(id)
@@ -23,16 +23,11 @@ var createLicense = func(c *gin.Context) {
 }
 
 var clientInfo = func(c *gin.Context) {
-	var newLicense license.License
-	if err := c.ShouldBindJSON(&newLicense); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
 	id, err := strconv.Atoi(c.Query("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "id : cannot be blank"})
 		return
 	}
-	resp := newLicense.CreateToken(id)
+	resp := license.GetAllLicenseInfo(id)
 	c.JSON(resp.Code, resp.Obj)
 }

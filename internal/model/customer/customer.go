@@ -74,12 +74,12 @@ func (customer *Customer) Update() u.Response {
 }
 
 func (customer *Customer) Get(id int) error {
-	rows, err := db.GetDB().Query(`SELECT name, address, servers, phone, email FROM public.customers WHERE id=$1`, id)
+	rows, err := db.GetDB().Query(`SELECT id, name, address, servers, phone, email FROM public.customers WHERE id=$1`, id)
 	if err != nil {
 		return err
 	}
 	for rows.Next() {
-		err := rows.Scan(&customer.Name, &customer.Address, pq.Array(&customer.Servers), &customer.Phone, &customer.Email)
+		err := rows.Scan(&customer.ID, &customer.Name, &customer.Address, pq.Array(&customer.Servers), &customer.Phone, &customer.Email)
 		if err != nil {
 			return err
 		}
