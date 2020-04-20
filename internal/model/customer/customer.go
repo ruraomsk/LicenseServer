@@ -73,6 +73,20 @@ func (customer *Customer) Update() u.Response {
 	return u.Message(http.StatusOK, "customer update")
 }
 
+func (customer *Customer) Get(id int) error {
+	rows, err := db.GetDB().Query(`SELECT name, address, servers, phone, email FROM public.customers WHERE id=$1`, id)
+	if err != nil {
+		return err
+	}
+	for rows.Next() {
+		err := rows.Scan(&customer.Name, &customer.Address, pq.Array(&customer.Servers), &customer.Phone, &customer.Email)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //GetAllCustomers получить всех клиента
 func GetAllCustomers() u.Response {
 	rows, err := db.GetDB().Query(`SELECT id, name, address, servers, phone, email FROM public.customers`)

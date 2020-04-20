@@ -15,8 +15,8 @@ var (
 		numDev integer NOT NULL,
 		yaKey text,
 		tokenPass text,
-		serverID integer,		
-		endTime time
+		token text,	
+		endTime timestamp with time zone
 	);`
 	customerTable = `
 	CREATE TABLE customers (

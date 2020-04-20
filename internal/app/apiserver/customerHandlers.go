@@ -16,7 +16,7 @@ var allCustomers = func(c *gin.Context) {
 var createCustomer = func(c *gin.Context) {
 	var newCustomer customer.Customer
 	if err := c.ShouldBindJSON(&newCustomer); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	resp := newCustomer.Create()
@@ -27,7 +27,7 @@ var createCustomer = func(c *gin.Context) {
 var deleteCustomer = func(c *gin.Context) {
 	var delCustomer customer.Customer
 	if err := c.ShouldBindJSON(&delCustomer); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	resp := delCustomer.Delete()
@@ -38,7 +38,7 @@ var deleteCustomer = func(c *gin.Context) {
 var updateCustomer = func(c *gin.Context) {
 	var updateCustomer customer.Customer
 	if err := c.ShouldBindJSON(&updateCustomer); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	resp := updateCustomer.Update()

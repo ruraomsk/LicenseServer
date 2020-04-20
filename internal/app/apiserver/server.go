@@ -36,6 +36,12 @@ func StartServer(conf ServerConf) {
 	mainRouter.POST("/deleteCustomer", deleteCustomer)
 	mainRouter.POST("/updateCustomer", updateCustomer)
 
+	mainRouter.GET("/client", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
+	})
+	mainRouter.POST("/client", clientInfo)
+	mainRouter.POST("/client/createLicense", createLicense)
+
 	fileServer := router.Group("/fileServer")
 	fileServer.StaticFS("/dir", http.Dir("./logfiles"))
 	fileServer.StaticFS("/static", http.Dir("./web/resources"))
