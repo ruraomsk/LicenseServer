@@ -19,6 +19,7 @@ type Customer struct {
 	Servers []int64 `json:"servers",sql:"servers"`
 }
 
+//validate проверка данных клиента
 func (customer *Customer) validate() error {
 	return validation.ValidateStruct(customer,
 		validation.Field(&customer.Name, validation.Required, validation.Length(3, 100)),
@@ -29,6 +30,7 @@ func (customer *Customer) validate() error {
 	)
 }
 
+//Create создание клиента
 func (customer *Customer) Create() u.Response {
 	if err := customer.validate(); err != nil {
 		return u.Message(http.StatusBadRequest, err.Error())
@@ -44,13 +46,34 @@ func (customer *Customer) Create() u.Response {
 			return u.Message(http.StatusBadRequest, "this customer has already been created")
 		}
 	}
-	_, err = db.GetDB().Exec(`INSERT INTO public.customers (name, address, phone, email,servers) VALUES ($1, $2, $3, $4, $5)`, customer.Name, customer.Address, customer.Phone, customer.Email, pq.Array(customer.Servers))
+	_, err = db.GetDB().Exec(`INSERT INTO public.customers (name, address, phone, email,servers) VALUES ($1, $2, $3, $4, $5)`,
+		customer.Name, customer.Address, customer.Phone, customer.Email, pq.Array(customer.Servers))
 	if err != nil {
 		return u.Message(http.StatusInternalServerError, err.Error())
 	}
 	return u.Message(http.StatusOK, "customer created")
 }
 
+//Delete удалить клиента
+func (customer *Customer) Delete() u.Response {
+	_, err := db.GetDB().Exec(`DELETE FROM public.customers WHERE id=$1`, customer.ID)
+	if err != nil {
+		return u.Message(http.StatusInternalServerError, err.Error())
+	}
+	return u.Message(http.StatusOK, "customer deleted")
+}
+
+//Update обновить данные клиента
+func (customer *Customer) Update() u.Response {
+	_, err := db.GetDB().Exec(`UPDATE public.customers SET name=$1, address=$2, phone=$3, email=$4 WHERE id=$5`,
+		customer.Name, customer.Address, customer.Phone, customer.Email, customer.ID)
+	if err != nil {
+		return u.Message(http.StatusInternalServerError, err.Error())
+	}
+	return u.Message(http.StatusOK, "customer update")
+}
+
+//GetAllCustomers получить всех клиента
 func GetAllCustomers() u.Response {
 	rows, err := db.GetDB().Query(`SELECT id, name, address, servers, phone, email FROM public.customers`)
 	if err != nil {

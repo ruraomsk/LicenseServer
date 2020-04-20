@@ -9,11 +9,13 @@ import (
 	"net/http"
 )
 
+//ServerConf конфигурация сервера
 type ServerConf struct {
 	DB   *sqlx.DB
 	Port string
 }
 
+//StartServer запуск сервера
 func StartServer(conf ServerConf) {
 	router := gin.Default()
 
@@ -31,6 +33,8 @@ func StartServer(conf ServerConf) {
 	})
 	mainRouter.POST("/", allCustomers)
 	mainRouter.POST("/createCustomer", createCustomer)
+	mainRouter.POST("/deleteCustomer", deleteCustomer)
+	mainRouter.POST("/updateCustomer", updateCustomer)
 
 	fileServer := router.Group("/fileServer")
 	fileServer.StaticFS("/dir", http.Dir("./logfiles"))
