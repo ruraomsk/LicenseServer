@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var key = "asdqweqwe123dzsd12312cxq"
+var key = "yreRmn6JKVv1md1Yh1PptBIjtGrL8pRjo8sAp5ZPlR6zK8xjxnzt6mGi6mtjWPJ6lz1HbhgNBxfSReuqP9ijLQ4JiWLQ4ADHefWVgtTzeI35pqB6hsFjOWufdAW8UEdK9ajm3T76uQlucUP2g4rUV8B9gTMoLtkn5Pxk6G83YZrvAIR7ddsd5PreTwGDoLrS6bdsbJ7u"
 
 //License информация о лицензии клиента (БД?)
 type License struct {
@@ -71,6 +71,18 @@ func (license *License) CreateToken(id int) u.Response {
 	if err != nil {
 		return u.Message(http.StatusInternalServerError, err.Error())
 	}
+	if customerInfo.ID == 0 {
+		return u.Message(http.StatusBadRequest, "this client doesn't exist")
+	}
+	have := false
+	for _, server := range customerInfo.Servers {
+		if server == int64(license.Id) {
+			have = true
+		}
+	}
+	if !have {
+		return u.Message(http.StatusInternalServerError, "this client doesn't own a license")
+	}
 	//создаем токен
 	tk := &Token{
 		Name:      customerInfo.Name,
@@ -89,7 +101,10 @@ func (license *License) CreateToken(id int) u.Response {
 	tokenString, _ := token.SignedString([]byte(key))
 
 	//сохраняем токен в БД
-	//GetDB().Exec("update public.accounts set token = ? where login = ?", account.Token, account.Login)
+	_, err = db.GetDB().Exec(`UPDATE  public.license SET token = $1 WHERE id = $2`, tokenString, license.Id)
+	if err != nil {
+		return u.Message(http.StatusInternalServerError, err.Error())
+	}
 
 	//Формируем ответ
 	resp := u.Message(http.StatusOK, "LicenseToken")

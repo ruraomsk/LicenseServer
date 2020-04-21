@@ -26,6 +26,8 @@ func StartServer(conf ServerConf) {
 		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
 	})
 
+	router.GET("/genKey", genKey)
+
 	mainRouter := router.Group("/main")
 
 	mainRouter.GET("/", func(c *gin.Context) {
@@ -41,6 +43,7 @@ func StartServer(conf ServerConf) {
 	})
 	mainRouter.POST("/client", clientInfo)
 	mainRouter.POST("/client/createLicense", createLicense)
+	mainRouter.GET("/client/createToken", createToken)
 
 	fileServer := router.Group("/fileServer")
 	fileServer.StaticFS("/dir", http.Dir("./logfiles"))
