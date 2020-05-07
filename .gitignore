@@ -5,12 +5,9 @@
 .idea/modules.xml
 .idea/vcs.xml
 
-logfiles
+
 logfiles/**
 
-/web/
 /web/**
-/web/html/
 /web/html/**
-/web/resources/
 /web/resources/**

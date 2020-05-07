@@ -3,12 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
+
 	"github.com/BurntSushi/toml"
 	"github.com/JanFant/LicenseServer/internal/app/apiserver"
 	"github.com/JanFant/LicenseServer/internal/app/config"
 	"github.com/JanFant/LicenseServer/internal/app/db"
 	"github.com/JanFant/TLServer/logger"
-	"os"
 )
 
 func init() {
