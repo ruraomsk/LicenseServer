@@ -34,15 +34,16 @@ var clientInfo = func(c *gin.Context) {
 
 var createToken = func(c *gin.Context) {
 	var tokenLicense license.License
-	if err := c.ShouldBindJSON(&tokenLicense); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
-		return
-	}
-	id, err := strconv.Atoi(c.Query("id"))
+	clientID, err := strconv.Atoi(c.Query("client"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": "id : cannot be blank"})
 		return
 	}
-	resp := tokenLicense.CreateToken(id)
+	tokenID, err := strconv.Atoi(c.Query("token"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "id : cannot be blank"})
+		return
+	}
+	resp := tokenLicense.CreateToken(clientID, tokenID)
 	c.JSON(resp.Code, resp.Obj)
 }

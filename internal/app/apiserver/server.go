@@ -17,6 +17,7 @@ type ServerConf struct {
 
 //StartServer запуск сервера
 func StartServer(conf ServerConf) {
+
 	router := gin.Default()
 
 	router.Use(cors.Default())
@@ -34,11 +35,6 @@ func StartServer(conf ServerConf) {
 		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
 	})
 	mainRouter.POST("/", allCustomers)
-
-	mainRouter.GET("/ws", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "brah.html", gin.H{"title": "inDevelop"})
-	})
-	mainRouter.GET("/wsA", allCustomersWS)
 
 	mainRouter.POST("/createCustomer", createCustomer)
 	mainRouter.POST("/deleteCustomer", deleteCustomer)

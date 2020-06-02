@@ -8,5 +8,5 @@ import (
 
 var genKey = func(c *gin.Context) {
 
-	c.JSON(http.StatusOK, gin.H{"key": u.GenerateRandomKey(200)})
+	c.JSON(http.StatusOK, gin.H{"key": u.GenerateRandomKey(512)})
 }

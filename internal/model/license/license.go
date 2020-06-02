@@ -16,23 +16,25 @@ var key = "yreRmn6JKVv1md1Yh1PptBIjtGrL8pRjo8sAp5ZPlR6zK8xjxnzt6mGi6mtjWPJ6lz1Hb
 
 //License информация о лицензии клиента (БД?)
 type License struct {
-	Id        int       `json:"id",sql:"id"`               //уникальный номер сервера
-	NumDev    int       `json:"numdev",sql:"numdev"`       //количество устройств
-	YaKey     string    `json:"yakey",sql:"yakey"`         //ключ яндекса
-	TokenPass string    `json:"tokenpass",sql:"tokenpass"` //пароль для шифрования токена https запросов
-	EndTime   time.Time `json:"endtime",sql:"endtime"`     //время окончания лицензии
-	Token     string    `json:"token",sql:"token"`         //созданный токен
+	Id        int       `json:"id",sql:"id"`                 //уникальный номер сервера
+	NumDev    int       `json:"numdev",sql:"numdev"`         //количество устройств
+	YaKey     string    `json:"yakey",sql:"yakey"`           //ключ яндекса
+	TokenPass string    `json:"tokenpass",sql:"tokenpass"`   //пароль для шифрования токена https запросов
+	TechEmail []string  `json:"tech_email",sql:"tech_email"` //почта для отправки сообщений в тех поддержку
+	EndTime   time.Time `json:"endtime",sql:"endtime"`       //время окончания лицензии
+	Token     string    `json:"token",sql:"token"`           //созданный токен
 }
 
 //LicenseToken токен лицензии клиента
 type Token struct {
-	NumDevice int    //количество устройств
-	YaKey     string //ключ яндекса
-	TokenPass string //пароль для шифрования токена https запросов
-	Name      string //название фирмы
-	Phone     string //телефон фирмы
-	Id        int    //уникальный номер сервера
-	Email     string //почта фирмы
+	NumDevice int      //количество устройств
+	YaKey     string   //ключ яндекса
+	TokenPass string   //пароль для шифрования токена https запросов
+	Name      string   //название фирмы
+	Phone     string   //телефон фирмы
+	Id        int      //уникальный номер сервера
+	TechEmail []string //почта для отправки сообщений в тех поддержку
+	Email     string   //почта фирмы
 	jwt.StandardClaims
 }
 
@@ -41,6 +43,7 @@ func (license *License) validate() error {
 		validation.Field(&license.NumDev, validation.Required, validation.Min(0), validation.Max(1000)),
 		validation.Field(&license.YaKey, validation.Required),
 		validation.Field(&license.EndTime, validation.Required),
+		validation.Field(&license.TechEmail, validation.Required),
 	)
 }
 
@@ -52,8 +55,8 @@ func (license *License) CreateLicense(idCustomer int) u.Response {
 	//генерация ключа
 	license.TokenPass = u.GenerateRandomKey(100)
 	var idLicense int
-	row := db.GetDB().QueryRow(`INSERT INTO public.license (numdev, yakey, tokenpass, endtime, token) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-		license.NumDev, license.YaKey, license.TokenPass, string(pq.FormatTimestamp(license.EndTime)), license.Token)
+	row := db.GetDB().QueryRow(`INSERT INTO public.license (numdev, yakey, tokenpass, endtime, token, tech_email) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+		license.NumDev, license.YaKey, license.TokenPass, string(pq.FormatTimestamp(license.EndTime)), license.Token, pq.Array(license.TechEmail))
 	if err := row.Scan(&idLicense); err != nil {
 		return u.Message(http.StatusInternalServerError, err.Error())
 	}
@@ -65,15 +68,22 @@ func (license *License) CreateLicense(idCustomer int) u.Response {
 	return u.Message(http.StatusOK, "license record created")
 }
 
-func (license *License) CreateToken(id int) u.Response {
+func (license *License) CreateToken(clientID, tokenID int) u.Response {
 	var customerInfo customer.Customer
-	err := customerInfo.Get(id)
+	err := customerInfo.Get(clientID)
 	if err != nil {
 		return u.Message(http.StatusInternalServerError, err.Error())
 	}
 	if customerInfo.ID == 0 {
 		return u.Message(http.StatusBadRequest, "this client doesn't exist")
 	}
+
+	err = db.GetDB().QueryRow("SELECT id, numdev, yakey, tokenpass, token, tech_email, endtime FROM public.license WHERE id = $1", tokenID).Scan(
+		&license.Id, &license.NumDev, &license.YaKey, &license.TokenPass, &license.Token, pq.Array(&license.TechEmail), &license.EndTime)
+	if err != nil {
+		return u.Message(http.StatusInternalServerError, err.Error())
+	}
+
 	have := false
 	for _, server := range customerInfo.Servers {
 		if server == int64(license.Id) {
@@ -83,6 +93,7 @@ func (license *License) CreateToken(id int) u.Response {
 	if !have {
 		return u.Message(http.StatusInternalServerError, "this client doesn't own a license")
 	}
+
 	//создаем токен
 	tk := &Token{
 		Name:      customerInfo.Name,
@@ -91,6 +102,7 @@ func (license *License) CreateToken(id int) u.Response {
 		NumDevice: license.NumDev,
 		Phone:     customerInfo.Phone,
 		TokenPass: license.TokenPass,
+		TechEmail: license.TechEmail,
 		Id:        license.Id}
 	//врямя выдачи токена
 	tk.IssuedAt = time.Now().Unix()
@@ -124,7 +136,7 @@ func GetAllLicenseInfo(id int) u.Response {
 	}
 	var allLicense []License
 	if len(customerInfo.Servers) > 0 {
-		query, args, err := sqlx.In("SELECT * FROM public.license WHERE id IN (?)", customerInfo.Servers)
+		query, args, err := sqlx.In("SELECT id, numdev, yakey, tokenpass, token, tech_email, endtime FROM public.license WHERE id IN (?)", customerInfo.Servers)
 		if err != nil {
 			return u.Message(http.StatusInternalServerError, err.Error())
 		}
@@ -135,7 +147,7 @@ func GetAllLicenseInfo(id int) u.Response {
 		}
 		for rows.Next() {
 			var temp License
-			err := rows.StructScan(&temp)
+			err := rows.Scan(&temp.Id, &temp.NumDev, &temp.YaKey, &temp.TokenPass, &temp.Token, pq.Array(&temp.TechEmail), &temp.EndTime)
 			if err != nil {
 				return u.Message(http.StatusInternalServerError, err.Error())
 			}

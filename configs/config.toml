@@ -1,6 +1,6 @@
 #Toml configs
 
-server_port = ":8085"
+server_port = ":8086"
 log_path = "logfiles"
 
 [database]

@@ -16,6 +16,7 @@ var (
 		yakey text,
 		tokenpass text,
 		token text,	
+		tech_email text[],
 		endtime timestamp with time zone
 	);`
 	customerTable = `
@@ -44,13 +45,13 @@ func ConnectDB() (*sqlx.DB, error) {
 	db.SetMaxOpenConns(config.GlobalConfig.DBConfig.MaxOpen)
 	db.SetMaxIdleConns(config.GlobalConfig.DBConfig.MaxIdle)
 
-	_, err = db.Query(`SELECT * FROM license;`)
+	_, err = db.Exec(`SELECT * FROM license;`)
 	if err != nil {
 		fmt.Println("license table not found - created")
 		logger.Info.Println("|Message: license table not found - created")
 		db.MustExec(licenseTable)
 	}
-	_, err = db.Query(`SELECT * FROM customers;`)
+	_, err = db.Exec(`SELECT * FROM customers;`)
 	if err != nil {
 		fmt.Println("customer table not found - created")
 		logger.Info.Println("|Message: customer table not found - created")
