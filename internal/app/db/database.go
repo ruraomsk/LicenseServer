@@ -13,6 +13,7 @@ var (
 	CREATE TABLE license (
 		id serial PRIMARY KEY,
 		numdev integer NOT NULL,
+		numacc integer NOT NULL,
 		yakey text,
 		tokenpass text,
 		token text,	
