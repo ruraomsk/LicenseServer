@@ -3,6 +3,7 @@ package customer
 import (
 	"github.com/JanFant/LicenseServer/internal/app/db"
 	u "github.com/JanFant/LicenseServer/internal/app/utils"
+	"github.com/JanFant/TLServer/logger"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/lib/pq"
@@ -88,24 +89,24 @@ func (customer *Customer) Get(id int) error {
 }
 
 //GetAllCustomers получить всех клиента
-func GetAllCustomers() u.Response {
+func GetAllCustomers() []Customer {
 	rows, err := db.GetDB().Query(`SELECT id, name, address, servers, phone, email FROM public.customers`)
 	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
+		logger.Error.Printf("|Message: %v", err.Error())
+		return make([]Customer, 0)
 	}
 	var customers []Customer
 	for rows.Next() {
 		var temp Customer
 		err := rows.Scan(&temp.ID, &temp.Name, &temp.Address, pq.Array(&temp.Servers), &temp.Phone, &temp.Email)
 		if err != nil {
-			return u.Message(http.StatusInternalServerError, err.Error())
+			logger.Error.Printf("|Message: %v", err.Error())
+			return make([]Customer, 0)
 		}
 		customers = append(customers, temp)
 	}
 	if len(customers) == 0 {
 		customers = make([]Customer, 0)
 	}
-	resp := u.Message(http.StatusOK, "all customers")
-	resp.Obj["customers"] = customers
-	return resp
+	return customers
 }

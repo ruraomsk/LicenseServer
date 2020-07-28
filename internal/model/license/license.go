@@ -28,10 +28,10 @@ type License struct {
 
 //LicenseToken токен лицензии клиента
 type Token struct {
-	NumDevice int    //количество устройств
-	YaKey     string //ключ яндекса
-	TokenPass string //пароль для шифрования токена https запросов
-	NumAcc    int
+	NumDevice int      //количество устройств
+	YaKey     string   //ключ яндекса
+	TokenPass string   //пароль для шифрования токена https запросов
+	NumAcc    int      //колическво аккаунтов
 	Name      string   //название фирмы
 	Phone     string   //телефон фирмы
 	Id        int      //уникальный номер сервера

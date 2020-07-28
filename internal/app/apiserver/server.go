@@ -2,6 +2,7 @@ package apiserver
 
 import (
 	"fmt"
+	"github.com/JanFant/LicenseServer/internal/sockets/customer"
 	"github.com/JanFant/TLServer/logger"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -17,39 +18,41 @@ type ServerConf struct {
 
 //StartServer запуск сервера
 func StartServer(conf ServerConf) {
+	go customer.CustBroadcast()
 
 	router := gin.Default()
 
 	router.Use(cors.Default())
 
 	router.LoadHTMLGlob("./web/html/**")
-	router.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
-	})
 
 	router.GET("/genKey", genKey)
 
-	mainRouter := router.Group("/main")
-
-	mainRouter.GET("/", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
+	router.GET("/", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "custom.html", nil)
 	})
-	mainRouter.POST("/", allCustomers)
+	//router.POST("/", allCustomers)
 
-	mainRouter.POST("/createCustomer", createCustomer)
-	mainRouter.POST("/deleteCustomer", deleteCustomer)
-	mainRouter.POST("/updateCustomer", updateCustomer)
+	//----------------------
+	router.GET("/ws", customerEngine)
+	//-------------
 
-	mainRouter.GET("/client", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "inDeveloping.html", gin.H{"title": "inDevelop"})
+	router.POST("/createCustomer", createCustomer)
+	router.POST("/deleteCustomer", deleteCustomer)
+	router.POST("/updateCustomer", updateCustomer)
+
+	router.GET("/client", func(c *gin.Context) {
+		c.HTML(http.StatusOK, "inDeveloping.html", nil)
 	})
-	mainRouter.POST("/client", clientInfo)
-	mainRouter.POST("/client/createLicense", createLicense)
-	mainRouter.GET("/client/createToken", createToken)
+	router.POST("/client", clientInfo)
+	router.POST("/client/createLicense", createLicense)
+	router.GET("/client/createToken", createToken)
 
 	fileServer := router.Group("/fs")
 	fileServer.StaticFS("/dir", http.Dir("./logfiles"))
-	fileServer.StaticFS("/static", http.Dir("./web/resources"))
+	fileServer.StaticFS("/res", http.Dir("./web/resources"))
+	fileServer.StaticFS("/css", http.Dir("./web/css"))
+	fileServer.StaticFS("/js", http.Dir("./web/js"))
 
 	if err := router.Run(conf.Port); err != nil {
 		logger.Error.Println("|Message: Error start server ", err.Error())

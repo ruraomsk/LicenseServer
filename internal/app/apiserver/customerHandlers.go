@@ -6,11 +6,11 @@ import (
 	"net/http"
 )
 
-//allCustomers обработчик запроса получения всех клиентов
-var allCustomers = func(c *gin.Context) {
-	resp := customer.GetAllCustomers()
-	c.JSON(resp.Code, resp.Obj)
-}
+////allCustomers обработчик запроса получения всех клиентов
+//var allCustomers = func(c *gin.Context) {
+//	resp := customer.GetAllCustomers()
+//	c.JSON(resp.Code, resp.Obj)
+//}
 
 //createCustomer обработчик создания клиента
 var createCustomer = func(c *gin.Context) {
