@@ -33,6 +33,7 @@ type Token struct {
 	TokenPass string   //пароль для шифрования токена https запросов
 	NumAcc    int      //колическво аккаунтов
 	Name      string   //название фирмы
+	Address   string   //расположение фирмы
 	Phone     string   //телефон фирмы
 	Id        int      //уникальный номер сервера
 	TechEmail []string //почта для отправки сообщений в тех поддержку
@@ -107,6 +108,7 @@ func (license *License) CreateToken(clientID, tokenID int) u.Response {
 		TokenPass: license.TokenPass,
 		TechEmail: license.TechEmail,
 		NumAcc:    license.NumAcc,
+		Address:   customerInfo.Address,
 		Id:        license.Id}
 	//врямя выдачи токена
 	tk.IssuedAt = time.Now().Unix()
