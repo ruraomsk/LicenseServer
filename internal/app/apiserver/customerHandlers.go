@@ -41,6 +41,6 @@ var updateCustomer = func(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	resp := updateCustomer.Update()
-	c.JSON(resp.Code, resp.Obj)
+	//resp := updateCustomer.Update()
+	//c.JSON(resp.Code, resp.Obj)
 }

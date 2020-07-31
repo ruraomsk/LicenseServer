@@ -3,12 +3,10 @@ package customer
 import (
 	"errors"
 	"github.com/JanFant/LicenseServer/internal/app/db"
-	u "github.com/JanFant/LicenseServer/internal/app/utils"
 	"github.com/JanFant/TLServer/logger"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/lib/pq"
-	"net/http"
 )
 
 //Customer структура покупателя
@@ -46,7 +44,7 @@ func (customer *Customer) Create() error {
 	for row.Next() {
 		_ = row.Scan(&id)
 		if id > 0 {
-			return errors.New("этот пользователь не может быть создан")
+			return errors.New("пользователь с таким именем уже существует")
 		}
 	}
 	_, err = db.GetDB().Exec(`INSERT INTO public.customers (name, address, phone, email,servers) VALUES ($1, $2, $3, $4, $5)`,
@@ -58,22 +56,33 @@ func (customer *Customer) Create() error {
 }
 
 //Delete удалить клиента
-func (customer *Customer) Delete() u.Response {
+func (customer *Customer) Delete() error {
 	_, err := db.GetDB().Exec(`DELETE FROM public.customers WHERE id=$1`, customer.ID)
 	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
+		return err
 	}
-	return u.Message(http.StatusOK, "customer deleted")
+	return nil
 }
 
 //Update обновить данные клиента
-func (customer *Customer) Update() u.Response {
-	_, err := db.GetDB().Exec(`UPDATE public.customers SET name=$1, address=$2, phone=$3, email=$4 WHERE id=$5`,
+func (customer *Customer) Update() error {
+	var id int
+	row, err := db.GetDB().NamedQuery(`SELECT id FROM public.customers WHERE email = :email OR name = :name`, customer)
+	if err != nil {
+		return errors.New("ошибка связи с БД")
+	}
+	for row.Next() {
+		_ = row.Scan(&id)
+		if id > 0 {
+			return errors.New("пользователь с таким именем и почтой уже существует")
+		}
+	}
+	_, err = db.GetDB().Exec(`UPDATE public.customers SET name=$1, address=$2, phone=$3, email=$4 WHERE id=$5`,
 		customer.Name, customer.Address, customer.Phone, customer.Email, customer.ID)
 	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
+		return err
 	}
-	return u.Message(http.StatusOK, "customer update")
+	return nil
 }
 
 func (customer *Customer) Get(id int) error {

@@ -36,7 +36,7 @@ func (c *Client) readPump() {
 
 	c.conn.SetReadLimit(maxMessageSize)
 	_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
-	//c.conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
+	c.conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	{
 		resp := newCustomerMess(typeCustInfo, nil)
 		resp.Data[typeCustInfo] = customer.GetAllCustomers()
@@ -65,8 +65,39 @@ func (c *Client) readPump() {
 					resp := newCustomerMess(typeError, nil)
 					resp.Data["message"] = ErrorMessage{Error: err.Error()}
 					c.send <- resp
+					continue
 				}
-				resp := newCustomerMess(typeCustInfo, nil)
+				resp := newCustomerMess(typeCustUpdate, nil)
+				resp.Data[typeCustInfo] = customer.GetAllCustomers()
+				c.hub.broadcast <- resp
+			}
+		case typeDeleteCustomer:
+			{
+				var cust customer.Customer
+				_ = json.Unmarshal(p, &cust)
+				err := cust.Delete()
+				if err != nil {
+					resp := newCustomerMess(typeError, nil)
+					resp.Data["message"] = ErrorMessage{Error: err.Error()}
+					c.send <- resp
+					continue
+				}
+				resp := newCustomerMess(typeCustUpdate, nil)
+				resp.Data[typeCustInfo] = customer.GetAllCustomers()
+				c.hub.broadcast <- resp
+			}
+		case typeUpdateCustomer:
+			{
+				var cust customer.Customer
+				_ = json.Unmarshal(p, &cust)
+				err := cust.Update()
+				if err != nil {
+					resp := newCustomerMess(typeError, nil)
+					resp.Data["message"] = ErrorMessage{Error: err.Error()}
+					c.send <- resp
+					continue
+				}
+				resp := newCustomerMess(typeCustUpdate, nil)
 				resp.Data[typeCustInfo] = customer.GetAllCustomers()
 				c.hub.broadcast <- resp
 			}
