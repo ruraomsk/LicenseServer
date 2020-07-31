@@ -19,8 +19,8 @@ var createCustomer = func(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	resp := newCustomer.Create()
-	c.JSON(resp.Code, resp.Obj)
+	//resp := newCustomer.Create()
+	//c.JSON(resp.Code, resp.Obj)
 }
 
 //deleteCustomer обработчик удаления клиента
@@ -30,8 +30,8 @@ var deleteCustomer = func(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	resp := delCustomer.Delete()
-	c.JSON(resp.Code, resp.Obj)
+	//resp := delCustomer.Delete()
+	//c.JSON(resp.Code, resp.Obj)
 }
 
 //updateCustomer обработчик обновления данных клиента

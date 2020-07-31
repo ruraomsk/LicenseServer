@@ -19,7 +19,7 @@ func HubTest(c *gin.Context, hub *Hub) {
 		return
 	}
 
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hub, conn: conn, send: make(chan CustMess, 256)}
 	client.hub.register <- client
 
 	go client.writePump()

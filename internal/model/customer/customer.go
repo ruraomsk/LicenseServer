@@ -1,6 +1,7 @@
 package customer
 
 import (
+	"errors"
 	"github.com/JanFant/LicenseServer/internal/app/db"
 	u "github.com/JanFant/LicenseServer/internal/app/utils"
 	"github.com/JanFant/TLServer/logger"
@@ -32,27 +33,28 @@ func (customer *Customer) validate() error {
 }
 
 //Create создание клиента
-func (customer *Customer) Create() u.Response {
+func (customer *Customer) Create() error {
+	customer.Servers = make([]int64, 0)
 	if err := customer.validate(); err != nil {
-		return u.Message(http.StatusBadRequest, err.Error())
+		return err
 	}
 	var id int
 	row, err := db.GetDB().NamedQuery(`SELECT id FROM public.customers WHERE email = :email OR name = :name`, customer)
 	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
+		return errors.New("ошибка связи с БД")
 	}
 	for row.Next() {
 		_ = row.Scan(&id)
 		if id > 0 {
-			return u.Message(http.StatusBadRequest, "this customer has already been created")
+			return errors.New("этот пользователь не может быть создан")
 		}
 	}
 	_, err = db.GetDB().Exec(`INSERT INTO public.customers (name, address, phone, email,servers) VALUES ($1, $2, $3, $4, $5)`,
 		customer.Name, customer.Address, customer.Phone, customer.Email, pq.Array(customer.Servers))
 	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
+		return errors.New("ошибка связи с БД")
 	}
-	return u.Message(http.StatusOK, "customer created")
+	return nil
 }
 
 //Delete удалить клиента

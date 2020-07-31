@@ -1,10 +1,13 @@
 package test
 
 var (
-	typeError      = "error"
-	typeClose      = "close"
-	typeCustInfo   = "custInfo"
-	typeCustUpdate = "custUpdate"
+	typeError          = "error"
+	typeClose          = "close"
+	typeCustInfo       = "custInfo"
+	typeCustUpdate     = "custUpdate"
+	typeCreateCustomer = "createCustomer"
+	typeDeleteCustomer = "deleteCustomer"
+	errParseType       = "сервер не смог обработать запрос"
 )
 
 type CustMess struct {

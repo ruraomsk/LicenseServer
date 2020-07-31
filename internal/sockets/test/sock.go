@@ -3,6 +3,7 @@ package test
 import (
 	"encoding/json"
 	"github.com/JanFant/LicenseServer/internal/model/customer"
+	"github.com/JanFant/LicenseServer/internal/sockets"
 	"github.com/gorilla/websocket"
 	"time"
 )
@@ -24,7 +25,7 @@ const (
 type Client struct {
 	hub  *Hub
 	conn *websocket.Conn
-	send chan []byte
+	send chan CustMess
 }
 
 func (c *Client) readPump() {
@@ -39,8 +40,7 @@ func (c *Client) readPump() {
 	{
 		resp := newCustomerMess(typeCustInfo, nil)
 		resp.Data[typeCustInfo] = customer.GetAllCustomers()
-		raw, _ := json.Marshal(resp)
-		c.send <- raw
+		c.send <- resp
 	}
 
 	for {
@@ -49,7 +49,34 @@ func (c *Client) readPump() {
 			break
 		}
 		//ну отправка и отправка
-		c.hub.broadcast <- p
+		typeSelect, err := sockets.ChoseTypeMessage(p)
+		if err != nil {
+			resp := newCustomerMess(typeError, nil)
+			resp.Data["message"] = ErrorMessage{Error: errParseType}
+			c.send <- resp
+		}
+		switch typeSelect {
+		case typeCreateCustomer:
+			{
+				var cust customer.Customer
+				_ = json.Unmarshal(p, &cust)
+				err := cust.Create()
+				if err != nil {
+					resp := newCustomerMess(typeError, nil)
+					resp.Data["message"] = ErrorMessage{Error: err.Error()}
+					c.send <- resp
+				}
+				resp := newCustomerMess(typeCustInfo, nil)
+				resp.Data[typeCustInfo] = customer.GetAllCustomers()
+				c.hub.broadcast <- resp
+			}
+		default:
+			{
+				resp := newCustomerMess("type", nil)
+				resp.Data["type"] = typeSelect
+				c.send <- resp
+			}
+		}
 	}
 }
 
@@ -68,18 +95,17 @@ func (c *Client) writePump() {
 					return
 				}
 
-				//обычная отправка для моих нужд нужно заменить на json (наверно)
 				w, err := c.conn.NextWriter(websocket.TextMessage)
 				if err != nil {
 					return
 				}
-				_, _ = w.Write(mess)
+				_ = json.NewEncoder(w).Encode(mess)
 
 				// Add queued chat messages to the current websocket message.
 				n := len(c.send)
 				for i := 0; i < n; i++ {
 					_, _ = w.Write([]byte{'\n'})
-					_, _ = w.Write(<-c.send)
+					_ = json.NewEncoder(w).Encode(mess)
 				}
 
 				if err := w.Close(); err != nil {
