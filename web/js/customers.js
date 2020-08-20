@@ -48,7 +48,7 @@ $(document).ready(function() {
     };
 
 
-
+    //кнопка Создать
     $('#bt_create').on('click', function() {
         setCreateDialog();
         $('#custDialog').dialog('open');
@@ -61,6 +61,7 @@ $(document).ready(function() {
         });
     });
 
+    //кнопка Обновить
     $('#bt_update').prop('disabled', true);
     $('#bt_update').on('click', function() {
         setUpdateDialog();
@@ -74,6 +75,7 @@ $(document).ready(function() {
         });
     });
 
+    //кнопка Удалить
     $('#bt_delete').prop('disabled', true);
     $('#bt_delete').on('click', function() {
         deleteB();
@@ -84,6 +86,7 @@ function sortByName(a, b) {
     return a.name - b.name;
 };
 
+//fillTalbeCustomer заполнить таблицу клиентов
 function fillTalbeCustomer(customers, firstFlag) {
     let $table = $('#table');
     let selected = $table.bootstrapTable('getSelections');
@@ -115,7 +118,7 @@ function fillTalbeCustomer(customers, firstFlag) {
     });
 };
 
-
+//setCreateDialog диалог при создании клиента
 function setCreateDialog() {
     $('#custDialog').dialog({
         autoOpen: false,
@@ -127,6 +130,7 @@ function setCreateDialog() {
     $('#email').val("");
 };
 
+//setUpdateDialog диалог при обновлении клиента
 function setUpdateDialog() {
     $('#custDialog').dialog({
         autoOpen: false,
@@ -140,6 +144,7 @@ function setUpdateDialog() {
     $('#email').val(selected[0].email);
 }
 
+//sendCustomerDialog отпрака информации из диалога клиентов на сервер
 function sendCustomerDialog(typeD) {
     let cForm = $('#custForm')
     if (!cForm[0].checkValidity()) {
@@ -163,6 +168,7 @@ function sendCustomerDialog(typeD) {
     $('#custDialog').dialog('close');
 };
 
+//deleteB удаление клиента
 function deleteB() {
     let selected = $('#table').bootstrapTable('getSelections');
     let toSend = {
