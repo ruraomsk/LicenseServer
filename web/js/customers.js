@@ -5,7 +5,7 @@ let ws;
 
 $(document).ready(function() {
 
-    let url = 'ws://' + location.host + location.pathname + location.search + '/ws'
+    let url = 'ws://' + location.host + location.pathname + location.search + 'test/ws'
     ws = new WebSocket(url)
 
     ws.onopen = function() {

@@ -24,4 +24,5 @@ func HubTest(c *gin.Context, hub *Hub) {
 
 	go client.writePump()
 	go client.readPump()
+
 }

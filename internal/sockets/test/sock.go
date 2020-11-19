@@ -29,12 +29,7 @@ type Client struct {
 }
 
 func (c *Client) readPump() {
-	defer func() {
-		c.hub.unregister <- c
-		_ = c.conn.Close()
-	}()
 
-	c.conn.SetReadLimit(maxMessageSize)
 	_ = c.conn.SetReadDeadline(time.Now().Add(pongWait))
 	c.conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	{
