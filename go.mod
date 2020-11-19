@@ -13,6 +13,4 @@ require (
 	github.com/gorilla/websocket v1.4.2
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0
-	github.com/ruraomsk/ag-server v0.0.0-20200328044605-28136b43cf05 // indirect
-	golang.org/x/crypto v0.0.0-20200406173513-056763e48d71 // indirect
 )
