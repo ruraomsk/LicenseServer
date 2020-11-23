@@ -45,13 +45,12 @@
                     <th data-field="id" hidden>id</th>
                     <th data-field="name" data-sortable="true">Название</th>
                     <th data-field="address" data-sortable="true">Адресс</th>
-                    <th data-field="numS">Кол-во серверов</th>
+                    <th data-field="numS">Кол-во лицензий</th>
                     <th data-field="phone" data-sortable="true">Телефон</th>
                     <th data-field="email" data-sortable="true">Эл. почта</th>
                 </tr>
             </thead>
         </table>
-    </div>
     </div>
     <div id="custDialog" title="Создание клиента" style="display:none">
         <form class="needs-validation" id="custForm" novalidate>
@@ -79,8 +78,32 @@
             </div>
         </form>
     </div>
-
-
+    <div class="container-fluid row">
+        <div class="btn-group-toggle mr-auto m-2 p-2 col-sm-5 ">
+            <h5>Клиент: <span class="badge badge-secondary" id="cName"></span></h5>
+            <button type="button" class="btn btn-primary" id="btl_create">Создать</button>
+            <button type="button" class="btn btn-primary" id="btl_update">Обновить</button>
+            <button type="button" class="btn btn-primary" id="btl_delete">Удалить</button>
+        </div>
+        <div class="col-md-6 ">
+            <div class="alert alert-warning" id="infoAlert" role="alert" style="display:none"></div>
+        </div>
+    </div>
+    <div class="container-fluid table-responsive-md row-fluid overflow-auto mr-auto m-2 p-2">
+        <table class="table table-bordered" id="tableLicense" data-height="500 " data-toolbar="#toolbar" data-toggle="table" data-click-to-select="true" data-single-select="true">
+            <thead>
+                <tr>
+                    <th class="sorting" data-field="check" data-checkbox="true"></th>
+                    <th data-field="id" hidden>id</th>
+                    <th data-field="numDev" data-sortable="true">Кол-во устройств</th>
+                    <th data-field="numAcc" data-sortable="true">Кол-во аккаунтов</th>
+                    <th data-field="ebdTime" data-sortable="true">Время окончания</th>
+                    <th data-field="email">Почта Тех. Под.</th>
+                    <th data-field="token" data-sortable="true">Ключ</th>
+                </tr>
+            </thead>
+        </table>
+    </div>
     <script src="fs/js/customers.js"></script>
 </body>
 

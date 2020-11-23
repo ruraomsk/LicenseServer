@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/JanFant/LicenseServer/internal/sockets/customer"
 	"github.com/JanFant/LicenseServer/internal/sockets/test"
-	"github.com/JanFant/TLServer/logger"
+	"github.com/JanFant/easyLog"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
@@ -65,7 +65,7 @@ func StartServer(conf ServerConf) {
 	fileServer.StaticFS("/js", http.Dir("./web/js"))
 
 	if err := router.Run(conf.Port); err != nil {
-		logger.Error.Println("|Message: Error start server ", err.Error())
+		easyLog.Error.Println("|Message: Error start server ", err.Error())
 		fmt.Println("Error start server ", err.Error())
 	}
 }

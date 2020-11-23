@@ -3,13 +3,13 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/JanFant/LicenseServer/internal/app/apiserver"
+	"github.com/JanFant/LicenseServer/internal/app/db"
+	"github.com/JanFant/easyLog"
 	"os"
 
 	"github.com/BurntSushi/toml"
-	"github.com/JanFant/LicenseServer/internal/app/apiserver"
 	"github.com/JanFant/LicenseServer/internal/app/config"
-	"github.com/JanFant/LicenseServer/internal/app/db"
-	"github.com/JanFant/TLServer/logger"
 )
 
 func init() {
@@ -24,21 +24,21 @@ func init() {
 }
 
 func main() {
-	if err := logger.Init(config.GlobalConfig.LogPath); err != nil {
+	if err := easyLog.Init(config.GlobalConfig.LogPath); err != nil {
 		fmt.Println("Error opening logger subsystem ", err.Error())
 		return
 	}
 
 	dbConn, err := db.ConnectDB()
 	if err != nil {
-		logger.Error.Println("|Message: Error open DB", err.Error())
+		easyLog.Error.Println("|Message: Error open DB", err.Error())
 		fmt.Println("Error open DB ", err.Error())
 		return
 	}
 	defer dbConn.Close()
 
 	fmt.Println("Server started...")
-	logger.Info.Println("|Message: Server started...")
+	easyLog.Info.Println("|Message: Server started...")
 	var serverConf = apiserver.ServerConf{DB: dbConn, Port: config.GlobalConfig.ServerPort}
 	apiserver.StartServer(serverConf)
 }

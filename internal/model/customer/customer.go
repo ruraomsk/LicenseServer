@@ -3,7 +3,7 @@ package customer
 import (
 	"errors"
 	"github.com/JanFant/LicenseServer/internal/app/db"
-	"github.com/JanFant/TLServer/logger"
+	"github.com/JanFant/easyLog"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
 	"github.com/lib/pq"
@@ -66,23 +66,21 @@ func (customer *Customer) Delete() error {
 
 //Update обновить данные клиента
 func (customer *Customer) Update() error {
-	var id int
-	row, err := db.GetDB().NamedQuery(`SELECT id FROM public.customers WHERE email = :email OR name = :name`, customer)
+	var exists bool
+	err := db.GetDB().QueryRow(`SELECT exists (SELECT id FROM public.customers WHERE id = $1)`, customer.ID).Scan(&exists)
 	if err != nil {
 		return errors.New("ошибка связи с БД")
 	}
-	for row.Next() {
-		_ = row.Scan(&id)
-		if id > 0 {
-			return errors.New("пользователь с таким именем и почтой уже существует")
+	if exists {
+		_, err = db.GetDB().Exec(`UPDATE public.customers SET name=$1, address=$2, phone=$3, email=$4 WHERE id=$5`,
+			customer.Name, customer.Address, customer.Phone, customer.Email, customer.ID)
+		if err != nil {
+			return err
 		}
+		return nil
+	} else {
+		return errors.New("такой записи не существует")
 	}
-	_, err = db.GetDB().Exec(`UPDATE public.customers SET name=$1, address=$2, phone=$3, email=$4 WHERE id=$5`,
-		customer.Name, customer.Address, customer.Phone, customer.Email, customer.ID)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (customer *Customer) Get(id int) error {
@@ -103,7 +101,7 @@ func (customer *Customer) Get(id int) error {
 func GetAllCustomers() []Customer {
 	rows, err := db.GetDB().Query(`SELECT id, name, address, servers, phone, email FROM public.customers`)
 	if err != nil {
-		logger.Error.Printf("|Message: %v", err.Error())
+		easyLog.Error.Printf("|Message: %v", err.Error())
 		return make([]Customer, 0)
 	}
 	var customers []Customer
@@ -111,7 +109,7 @@ func GetAllCustomers() []Customer {
 		var temp Customer
 		err := rows.Scan(&temp.ID, &temp.Name, &temp.Address, pq.Array(&temp.Servers), &temp.Phone, &temp.Email)
 		if err != nil {
-			logger.Error.Printf("|Message: %v", err.Error())
+			easyLog.Error.Printf("|Message: %v", err.Error())
 			return make([]Customer, 0)
 		}
 		customers = append(customers, temp)

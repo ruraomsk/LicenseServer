@@ -3,7 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/JanFant/LicenseServer/internal/app/config"
-	"github.com/JanFant/TLServer/logger"
+	"github.com/JanFant/easyLog"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
@@ -49,13 +49,13 @@ func ConnectDB() (*sqlx.DB, error) {
 	_, err = db.Exec(`SELECT * FROM license;`)
 	if err != nil {
 		fmt.Println("license table not found - created")
-		logger.Info.Println("|Message: license table not found - created")
+		easyLog.Info.Println("|Message: license table not found - created")
 		db.MustExec(licenseTable)
 	}
 	_, err = db.Exec(`SELECT * FROM customers;`)
 	if err != nil {
 		fmt.Println("customer table not found - created")
-		logger.Info.Println("|Message: customer table not found - created")
+		easyLog.Info.Println("|Message: customer table not found - created")
 		db.MustExec(customerTable)
 	}
 	return db, nil
