@@ -1,4 +1,4 @@
-package test
+package custMain
 
 type Hub struct {
 	clients    map[*Client]bool

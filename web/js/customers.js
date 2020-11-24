@@ -1,11 +1,10 @@
 'use strict';
-let globalData;
 let ws;
-
+let customers;
 
 $(document).ready(function() {
 
-    let url = 'ws://' + location.host + location.pathname + location.search + 'test/ws'
+    let url = 'ws://' + location.host + location.pathname + location.search + 'custMain/ws'
     ws = new WebSocket(url)
 
     ws.onopen = function() {
@@ -24,14 +23,14 @@ $(document).ready(function() {
         switch (allData.type) {
             case 'custInfo':
                 {
-                    let customers = data.custInfo.sort(sortByName);
-                    fillTalbeCustomer(customers, true);
+                    customers = data.custInfo.sort(sortByName);
+                    fillCustomerTalbe();
                     break;
                 }
             case 'custUpdate':
                 {
-                    let customers = data.custInfo.sort(sortByName);
-                    fillTalbeCustomer(customers, false);
+                    customers = data.custInfo.sort(sortByName);
+                    fillCustomerTalbe();
                     break;
                 }
             case 'error':
@@ -40,6 +39,7 @@ $(document).ready(function() {
                     $('#infoAlert').fadeTo(3000, 500).slideUp(500, function() {
                         $('#infoAlert').slideUp(500);
                     });
+                    break;
                 }
 
             default:
@@ -48,9 +48,13 @@ $(document).ready(function() {
     };
 
 
-    //кнопка Создать
-    $('#bt_create').on('click', function() {
-        setCreateDialog();
+    setClientDisableBut(true);
+    $('#btl_update').prop('disabled', true); //лицензия обновление
+    $('#btl_delete').prop('disabled', true); //лицензия удаление
+
+    //кнопка клиента Создать
+    $('#btc_create').on('click', function() {
+        setCreateCustomerDialog();
         $('#custDialog').dialog('open');
         $('#custDialog').dialog({
             buttons: {
@@ -61,10 +65,9 @@ $(document).ready(function() {
         });
     });
 
-    //кнопка Обновить
-    $('#bt_update').prop('disabled', true);
-    $('#bt_update').on('click', function() {
-        setUpdateDialog();
+    //кнопка клиента Обновить
+    $('#btc_update').on('click', function() {
+        setCustomerUpdateDialog();
         $('#custDialog').dialog('open');
         $('#custDialog').dialog({
             buttons: {
@@ -75,19 +78,19 @@ $(document).ready(function() {
         });
     });
 
-    //кнопка Удалить
-    $('#bt_delete').prop('disabled', true);
-    $('#bt_delete').on('click', function() {
-        deleteB();
+    //кнопка клиента Удалить
+    $('#btc_delete').on('click', function() {
+        customerDeleteB();
     });
+
 });
 
 function sortByName(a, b) {
     return a.name - b.name;
 };
 
-//fillTalbeCustomer заполнить таблицу клиентов
-function fillTalbeCustomer(customers, firstFlag) {
+//fillCustomerTalbe заполнить таблицу клиентов
+function fillCustomerTalbe() {
     let $table = $('#table');
     let selected = $table.bootstrapTable('getSelections');
     let toWrite = [];
@@ -112,14 +115,29 @@ function fillTalbeCustomer(customers, firstFlag) {
     $table.bootstrapTable('hideColumn', 'id');
     $table.bootstrapTable('scrollTo', 'top');
 
-    $table.unbind().on('click', function() {
-        $('#bt_update').prop('disabled', false);
-        $('#bt_delete').prop('disabled', false);
+    $table.on('click', function() {
+        let selected = $table.bootstrapTable('getSelections');
+        if (selected.length > 0) {
+            setClientDisableBut(false);
+            $('#cName').text(selected[0].name);
+            fillLicenseTalbe();
+        } else {
+            setClientDisableBut(true);
+            $('#cName').text("");
+            fillLicenseTalbe();
+        }
     });
 };
 
+//setDisableButtons устанавливает неактивность кнопок
+function setClientDisableBut(flag) {
+    $('#btc_update').prop('disabled', flag); //клиент обновление
+    $('#btc_delete').prop('disabled', flag); //клиент удаление
+    $('#btl_create').prop('disabled', flag); //лицензия создание
+};
+
 //setCreateDialog диалог при создании клиента
-function setCreateDialog() {
+function setCreateCustomerDialog() {
     $('#custDialog').dialog({
         autoOpen: false,
         resizable: false,
@@ -131,13 +149,12 @@ function setCreateDialog() {
 };
 
 //setUpdateDialog диалог при обновлении клиента
-function setUpdateDialog() {
+function setCustomerUpdateDialog() {
     $('#custDialog').dialog({
         autoOpen: false,
         resizable: false,
     });
-    let $table = $('#table');
-    let selected = $table.bootstrapTable('getSelections');
+    let selected = $('#table').bootstrapTable('getSelections');
     $('#name').val(selected[0].name);
     $('#address').val(selected[0].address);
     $('#phone').val(selected[0].phone);
@@ -169,13 +186,74 @@ function sendCustomerDialog(typeD) {
 };
 
 //deleteB удаление клиента
-function deleteB() {
+function customerDeleteB() {
     let selected = $('#table').bootstrapTable('getSelections');
     let toSend = {
         type: "deleteCustomer",
         id: selected[0].id,
     };
-    $('#bt_update').prop('disabled', true);
-    $('#bt_delete').prop('disabled', true);
+    $('#btc_update').prop('disabled', true);
+    $('#btc_delete').prop('disabled', true);
     ws.send(JSON.stringify(toSend));
+};
+
+
+//fillLicenseTalbe заполнить таблицу клиентов
+function fillLicenseTalbe() {
+    let selectedCust = $('#table').bootstrapTable('getSelections');
+    if (selectedCust.length > 0) {
+        let $table = $('#tableLicense');
+        let selectedLic = $table.bootstrapTable('getSelections');
+        let toWrite = [];
+        customers.find(item => item.id === selectedCust[0].id).licenses.forEach(lic => {
+            let temp = {
+                id: lic.id,
+                check: false,
+                numDev: lic.numdev,
+                numAcc: lic.numacc,
+                email: lic.tech_email,
+                token: lic.token,
+                endTime: timeFormat(lic.endtime),
+            };
+            if (selectedLic.length === 1) {
+                if (lic.id === selectedLic[0].id) {
+                    temp.check = true;
+                }
+            }
+            toWrite.push(temp);
+        });
+
+
+        $table.bootstrapTable('load', toWrite);
+        $table.bootstrapTable('hideColumn', 'id');
+        $table.bootstrapTable('scrollTo', 'top');
+    } else {
+
+    }
+
+
+    // $table.on('click', function() {
+    //     let selected = $table.bootstrapTable('getSelections');
+    //     if (selected.length > 0) {
+    //         setClientDisableBut(false);
+    //         $('#cName').text(selected[0].name);
+    //     } else {
+    //         setClientDisableBut(true);
+    //         $('#cName').text("");
+    //     }
+    // });
+};
+
+function timeFormat(time) {
+    let date = new Date(time);
+    const dateTimeFormat = new Intl.DateTimeFormat('ru', {
+        day: "2-digit",
+        month: "2-digit",
+        year: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        timeZoneName: "short"
+    });
+    return dateTimeFormat.format(date);
 };

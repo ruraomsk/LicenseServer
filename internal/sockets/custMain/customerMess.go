@@ -1,4 +1,4 @@
-package test
+package custMain
 
 var (
 	typeError          = "error"

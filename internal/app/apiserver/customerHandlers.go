@@ -1,7 +1,7 @@
 package apiserver
 
 import (
-	"github.com/JanFant/LicenseServer/internal/model/customer"
+	"github.com/JanFant/LicenseServer/internal/model"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -14,7 +14,7 @@ import (
 
 //createCustomer обработчик создания клиента
 var createCustomer = func(c *gin.Context) {
-	var newCustomer customer.Customer
+	var newCustomer model.Customer
 	if err := c.ShouldBindJSON(&newCustomer); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -25,7 +25,7 @@ var createCustomer = func(c *gin.Context) {
 
 //deleteCustomer обработчик удаления клиента
 var deleteCustomer = func(c *gin.Context) {
-	var delCustomer customer.Customer
+	var delCustomer model.Customer
 	if err := c.ShouldBindJSON(&delCustomer); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
@@ -36,7 +36,7 @@ var deleteCustomer = func(c *gin.Context) {
 
 //updateCustomer обработчик обновления данных клиента
 var updateCustomer = func(c *gin.Context) {
-	var updateCustomer customer.Customer
+	var updateCustomer model.Customer
 	if err := c.ShouldBindJSON(&updateCustomer); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return

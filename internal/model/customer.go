@@ -1,6 +1,7 @@
-package customer
+package model
 
 import (
+	"encoding/json"
 	"errors"
 	"github.com/JanFant/LicenseServer/internal/app/db"
 	"github.com/JanFant/easyLog"
@@ -11,12 +12,13 @@ import (
 
 //Customer структура покупателя
 type Customer struct {
-	ID      int     `json:"id",sql:"id"`
-	Name    string  `json:"name",sql:"name"`
-	Address string  `json:"address",sql:"address"`
-	Phone   string  `json:"phone",sql:"phone"`
-	Email   string  `json:"email",sql:"email"`
-	Servers []int64 `json:"servers",sql:"servers"`
+	ID       int       `json:"id" ,sql:"id"`
+	Name     string    `json:"name" ,sql:"name"`
+	Address  string    `json:"address" ,sql:"address"`
+	Phone    string    `json:"phone" ,sql:"phone"`
+	Email    string    `json:"email" ,sql:"email"`
+	Servers  []int64   `json:"servers" ,sql:"servers"`
+	Licenses []License `json:"licenses" ,sql:"licenses"`
 }
 
 //validate проверка данных клиента
@@ -99,18 +101,37 @@ func (customer *Customer) Get(id int) error {
 
 //GetAllCustomers получить всех клиента
 func GetAllCustomers() []Customer {
-	rows, err := db.GetDB().Query(`SELECT id, name, address, servers, phone, email FROM public.customers`)
+	rows, err := db.GetDB().Query(`SELECT  
+											cust.id, cust.name, cust.address, cust.servers, cust.phone, cust.email, 
+											json_strip_nulls(json_agg(json_build_object('id',lic.id,
+																						'numdev',lic.numdev,
+																						'numacc',lic.numacc,
+																						'yakey',lic.yakey,
+																						'tokenpass',lic.tokenpass,
+																						'token',lic.token,
+																						'tech_email',lic.tech_email,
+																						'endtime',lic.endtime))) as licenses
+											FROM public.customers as cust
+											LEFT JOIN public.license as lic ON lic.id = ANY(cust.servers)
+											GROUP BY cust.id;`)
 	if err != nil {
 		easyLog.Error.Printf("|Message: %v", err.Error())
 		return make([]Customer, 0)
 	}
 	var customers []Customer
 	for rows.Next() {
-		var temp Customer
-		err := rows.Scan(&temp.ID, &temp.Name, &temp.Address, pq.Array(&temp.Servers), &temp.Phone, &temp.Email)
+		var (
+			temp        Customer
+			licensesStr string
+		)
+		err := rows.Scan(&temp.ID, &temp.Name, &temp.Address, pq.Array(&temp.Servers), &temp.Phone, &temp.Email, &licensesStr)
 		if err != nil {
 			easyLog.Error.Printf("|Message: %v", err.Error())
 			return make([]Customer, 0)
+		}
+		err = json.Unmarshal([]byte(licensesStr), &temp.Licenses)
+		if err != nil {
+			easyLog.Error.Printf("|Message: %v", err.Error())
 		}
 		customers = append(customers, temp)
 	}

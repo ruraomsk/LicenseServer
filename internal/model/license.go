@@ -1,9 +1,8 @@
-package license
+package model
 
 import (
 	"github.com/JanFant/LicenseServer/internal/app/db"
 	u "github.com/JanFant/LicenseServer/internal/app/utils"
-	"github.com/JanFant/LicenseServer/internal/model/customer"
 	"github.com/dgrijalva/jwt-go"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/jmoiron/sqlx"
@@ -16,14 +15,14 @@ var key = "yreRmn6JKVv1md1Yh1PptBIjtGrL8pRjo8sAp5ZPlR6zK8xjxnzt6mGi6mtjWPJ6lz1Hb
 
 //License информация о лицензии клиента (БД?)
 type License struct {
-	Id        int       `json:"id",sql:"id"`                 //уникальный номер сервера
-	NumDev    int       `json:"numdev",sql:"numdev"`         //количество устройств
-	NumAcc    int       `json:"numacc",sql:"numacc"`         //колическво аккаунтов
-	YaKey     string    `json:"yakey",sql:"yakey"`           //ключ яндекса
-	TokenPass string    `json:"tokenpass",sql:"tokenpass"`   //пароль для шифрования токена https запросов
-	TechEmail []string  `json:"tech_email",sql:"tech_email"` //почта для отправки сообщений в тех поддержку
-	EndTime   time.Time `json:"endtime",sql:"endtime"`       //время окончания лицензии
-	Token     string    `json:"token",sql:"token"`           //созданный токен
+	Id        int       `json:"id" ,sql:"id"`                 //уникальный номер сервера
+	NumDev    int       `json:"numdev" ,sql:"numdev"`         //количество устройств
+	NumAcc    int       `json:"numacc" ,sql:"numacc"`         //колическво аккаунтов
+	YaKey     string    `json:"yakey" ,sql:"yakey"`           //ключ яндекса
+	TokenPass string    `json:"-" ,sql:"tokenpass"`           //пароль для шифрования токена https запросов
+	TechEmail []string  `json:"tech_email" ,sql:"tech_email"` //почта для отправки сообщений в тех поддержку
+	EndTime   time.Time `json:"endtime" ,sql:"endtime"`       //время окончания лицензии
+	Token     string    `json:"token" ,sql:"token"`           //созданный токен
 }
 
 //LicenseToken токен лицензии клиента
@@ -73,7 +72,7 @@ func (license *License) CreateLicense(idCustomer int) u.Response {
 }
 
 func (license *License) CreateToken(clientID, tokenID int) u.Response {
-	var customerInfo customer.Customer
+	var customerInfo Customer
 	err := customerInfo.Get(clientID)
 	if err != nil {
 		return u.Message(http.StatusInternalServerError, err.Error())
@@ -132,7 +131,7 @@ func (license *License) CreateToken(clientID, tokenID int) u.Response {
 }
 
 func GetAllLicenseInfo(id int) u.Response {
-	var customerInfo customer.Customer
+	var customerInfo Customer
 	err := customerInfo.Get(id)
 	if err != nil {
 		return u.Message(http.StatusInternalServerError, err.Error())

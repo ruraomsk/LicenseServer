@@ -1,8 +1,8 @@
-package test
+package custMain
 
 import (
 	"encoding/json"
-	"github.com/JanFant/LicenseServer/internal/model/customer"
+	"github.com/JanFant/LicenseServer/internal/model"
 	"github.com/JanFant/LicenseServer/internal/sockets"
 	"github.com/gorilla/websocket"
 	"time"
@@ -17,9 +17,6 @@ const (
 
 	// Send pings to peer with this period. Must be less than pongWait.
 	pingPeriod = (pongWait * 9) / 10
-
-	// Maximum message size allowed from peer.
-	maxMessageSize = 1024
 )
 
 type Client struct {
@@ -34,7 +31,7 @@ func (c *Client) readPump() {
 	c.conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	{
 		resp := newCustomerMess(typeCustInfo, nil)
-		resp.Data[typeCustInfo] = customer.GetAllCustomers()
+		resp.Data[typeCustInfo] = model.GetAllCustomers()
 		c.send <- resp
 	}
 
@@ -53,7 +50,7 @@ func (c *Client) readPump() {
 		switch typeSelect {
 		case typeCreateCustomer:
 			{
-				var cust customer.Customer
+				var cust model.Customer
 				_ = json.Unmarshal(p, &cust)
 				err := cust.Create()
 				if err != nil {
@@ -63,12 +60,12 @@ func (c *Client) readPump() {
 					continue
 				}
 				resp := newCustomerMess(typeCustUpdate, nil)
-				resp.Data[typeCustInfo] = customer.GetAllCustomers()
+				resp.Data[typeCustInfo] = model.GetAllCustomers()
 				c.hub.broadcast <- resp
 			}
 		case typeDeleteCustomer:
 			{
-				var cust customer.Customer
+				var cust model.Customer
 				_ = json.Unmarshal(p, &cust)
 				err := cust.Delete()
 				if err != nil {
@@ -78,12 +75,12 @@ func (c *Client) readPump() {
 					continue
 				}
 				resp := newCustomerMess(typeCustUpdate, nil)
-				resp.Data[typeCustInfo] = customer.GetAllCustomers()
+				resp.Data[typeCustInfo] = model.GetAllCustomers()
 				c.hub.broadcast <- resp
 			}
 		case typeUpdateCustomer:
 			{
-				var cust customer.Customer
+				var cust model.Customer
 				_ = json.Unmarshal(p, &cust)
 				err := cust.Update()
 				if err != nil {
@@ -93,7 +90,7 @@ func (c *Client) readPump() {
 					continue
 				}
 				resp := newCustomerMess(typeCustUpdate, nil)
-				resp.Data[typeCustInfo] = customer.GetAllCustomers()
+				resp.Data[typeCustInfo] = model.GetAllCustomers()
 				c.hub.broadcast <- resp
 			}
 		default:

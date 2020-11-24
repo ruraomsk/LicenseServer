@@ -2,8 +2,7 @@ package apiserver
 
 import (
 	"fmt"
-	"github.com/JanFant/LicenseServer/internal/sockets/customer"
-	"github.com/JanFant/LicenseServer/internal/sockets/test"
+	"github.com/JanFant/LicenseServer/internal/sockets/custMain"
 	"github.com/JanFant/easyLog"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -19,8 +18,7 @@ type ServerConf struct {
 
 //StartServer запуск сервера
 func StartServer(conf ServerConf) {
-	go customer.CustBroadcast()
-	hub := test.NewHub()
+	hub := custMain.NewHub()
 	go hub.Run()
 
 	router := gin.Default()
@@ -34,18 +32,15 @@ func StartServer(conf ServerConf) {
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "custom.html", nil)
 	})
-	//router.POST("/", allCustomers)
 
-	router.GET("/test", func(c *gin.Context) {
-		c.HTML(http.StatusOK, "custom.html", nil)
-	})
-	router.GET("/test/ws", func(c *gin.Context) {
-		test.HubTest(c, hub)
+	//router.GET("/custMain", func(c *gin.Context) {
+	//	c.HTML(http.StatusOK, "custom.html", nil)
+	//})
+	router.GET("/custMain/ws", func(c *gin.Context) {
+		custMain.HubTest(c, hub)
 	})
 
 	//----------------------
-	router.GET("/ws", customerEngine)
-	//-------------
 
 	router.POST("/createCustomer", createCustomer)
 	router.POST("/deleteCustomer", deleteCustomer)
