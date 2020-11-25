@@ -133,6 +133,9 @@ func GetAllCustomers() []Customer {
 		if err != nil {
 			easyLog.Error.Printf("|Message: %v", err.Error())
 		}
+		if temp.Licenses[0].Id == 0 {
+			temp.Licenses = make([]License, 0)
+		}
 		customers = append(customers, temp)
 	}
 	if len(customers) == 0 {

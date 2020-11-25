@@ -34,7 +34,7 @@
             <button type="button" class="btn btn-primary" id="btc_delete">Удалить</button>
         </div>
         <div class="col-md-6 ">
-            <div class="alert alert-warning" id="infoAlert" role="alert" style="display:none"></div>
+            <div class="alert alert-warning" id="warningAlert" role="alert" style="display:none"></div>
         </div>
     </div>
     <div class="container-fluid table-responsive-md row-fluid overflow-auto mr-auto m-2 p-2">
@@ -85,8 +85,11 @@
             <button type="button" class="btn btn-primary" id="btl_update">Обновить</button>
             <button type="button" class="btn btn-primary" id="btl_delete">Удалить</button>
         </div>
-        <div class="col-md-6 ">
-            <div class="alert alert-warning" id="infoAlert" role="alert" style="display:none"></div>
+        <div class="btn-group-toggle mr-auto m-2 p-2 col-sm-5 ">
+            <h5>Ключ</h5>
+            <div class="alert alert-success" id="successAlert" role="alert" style="display:none"></div>
+            <button type="button" class="btn btn-primary" id="btt_recreate">Пересоздать</button>
+            <button type="button" class="btn btn-primary" id="btt_copy">Копировать</button>
         </div>
     </div>
     <div class="container-fluid table-responsive-md row-fluid overflow-auto mr-auto m-2 p-2">

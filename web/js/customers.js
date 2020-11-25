@@ -35,9 +35,9 @@ $(document).ready(function() {
                 }
             case 'error':
                 {
-                    $('#infoAlert').text(data.message.error)
-                    $('#infoAlert').fadeTo(3000, 500).slideUp(500, function() {
-                        $('#infoAlert').slideUp(500);
+                    $('#warningAlert').text(data.message.error)
+                    $('#warningAlert').fadeTo(3000, 500).slideUp(500, function() {
+                        $('#warningAlert').slideUp(500);
                     });
                     break;
                 }
@@ -49,8 +49,7 @@ $(document).ready(function() {
 
 
     setClientDisableBut(true);
-    $('#btl_update').prop('disabled', true); //лицензия обновление
-    $('#btl_delete').prop('disabled', true); //лицензия удаление
+    setLicenseDisableBut(true);
 
     //кнопка клиента Создать
     $('#btc_create').on('click', function() {
@@ -83,7 +82,19 @@ $(document).ready(function() {
         customerDeleteB();
     });
 
+    $('#btt_copy').on('click', function() {
+        let selected = $('#tableLicense').bootstrapTable('getSelections');
+        copyTextToBuffer(selected[0].token);
+        successAlertMessage("Сообщение скопированно");
+    });
 });
+
+function successAlertMessage(message) {
+    $('#successAlert').text(message);
+    $('#successAlert').fadeTo(3000, 500).slideUp(500, function() {
+        $('#successAlert').slideUp(500);
+    });
+}
 
 function sortByName(a, b) {
     return a.name - b.name;
@@ -123,8 +134,8 @@ function fillCustomerTalbe() {
             fillLicenseTalbe();
         } else {
             setClientDisableBut(true);
+            setLicenseDisableBut(true);
             $('#cName').text("");
-            fillLicenseTalbe();
         }
     });
 };
@@ -134,6 +145,7 @@ function setClientDisableBut(flag) {
     $('#btc_update').prop('disabled', flag); //клиент обновление
     $('#btc_delete').prop('disabled', flag); //клиент удаление
     $('#btl_create').prop('disabled', flag); //лицензия создание
+    $('#tableLicense').bootstrapTable('load', []);
 };
 
 //setCreateDialog диалог при создании клиента
@@ -201,47 +213,41 @@ function customerDeleteB() {
 //fillLicenseTalbe заполнить таблицу клиентов
 function fillLicenseTalbe() {
     let selectedCust = $('#table').bootstrapTable('getSelections');
-    if (selectedCust.length > 0) {
-        let $table = $('#tableLicense');
-        let selectedLic = $table.bootstrapTable('getSelections');
-        let toWrite = [];
-        customers.find(item => item.id === selectedCust[0].id).licenses.forEach(lic => {
-            let temp = {
-                id: lic.id,
-                check: false,
-                numDev: lic.numdev,
-                numAcc: lic.numacc,
-                email: lic.tech_email,
-                token: lic.token,
-                endTime: timeFormat(lic.endtime),
-            };
-            if (selectedLic.length === 1) {
-                if (lic.id === selectedLic[0].id) {
-                    temp.check = true;
-                }
+    let $table = $('#tableLicense');
+    let selectedLic = $table.bootstrapTable('getSelections');
+    let toWrite = [];
+    customers.find(item => item.id === selectedCust[0].id).licenses.forEach(lic => {
+        let temp = {
+            id: lic.id,
+            check: false,
+            numDev: lic.numdev,
+            numAcc: lic.numacc,
+            email: lic.tech_email,
+            token: lic.token,
+            endTime: timeFormat(lic.endtime),
+        };
+        if (selectedLic.length === 1) {
+            if (lic.id === selectedLic[0].id) {
+                temp.check = true;
             }
-            toWrite.push(temp);
-        });
+        }
+        toWrite.push(temp);
+    });
 
 
-        $table.bootstrapTable('load', toWrite);
-        $table.bootstrapTable('hideColumn', 'id');
-        $table.bootstrapTable('scrollTo', 'top');
-    } else {
-
-    }
+    $table.bootstrapTable('load', toWrite);
+    $table.bootstrapTable('hideColumn', 'id');
+    $table.bootstrapTable('scrollTo', 'top');
 
 
-    // $table.on('click', function() {
-    //     let selected = $table.bootstrapTable('getSelections');
-    //     if (selected.length > 0) {
-    //         setClientDisableBut(false);
-    //         $('#cName').text(selected[0].name);
-    //     } else {
-    //         setClientDisableBut(true);
-    //         $('#cName').text("");
-    //     }
-    // });
+    $table.on('click', function() {
+        let selected = $table.bootstrapTable('getSelections');
+        if (selected.length > 0) {
+            setLicenseDisableBut(false);
+        } else {
+            setLicenseDisableBut(true);
+        }
+    });
 };
 
 function timeFormat(time) {
@@ -256,4 +262,21 @@ function timeFormat(time) {
         timeZoneName: "short"
     });
     return dateTimeFormat.format(date);
+};
+
+
+function setLicenseDisableBut(flag) {
+    $('#btl_update').prop('disabled', flag); //лицензия обновление
+    $('#btl_delete').prop('disabled', flag); //лицензия удаление
+    $('#btt_recreate').prop('disabled', flag); //ключ пересоздание
+    $('#btt_copy').prop('disabled', flag); //ключ копирование
+};
+
+
+function copyTextToBuffer(value) {
+    var $temp = $("<input>");
+    $("body").append($temp);
+    $temp.val(value).select();
+    document.execCommand("copy");
+    $temp.remove();
 };
