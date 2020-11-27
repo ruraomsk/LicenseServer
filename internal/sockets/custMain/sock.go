@@ -31,13 +31,14 @@ func (c *Client) readPump() {
 	c.conn.SetPongHandler(func(string) error { _ = c.conn.SetReadDeadline(time.Now().Add(pongWait)); return nil })
 	{
 		resp := newCustomerMess(typeCustInfo, nil)
-		resp.Data[typeCustInfo] = model.GetAllCustomers()
+		resp.Data[typeCustInfo] = model.GetAllInfo()
 		c.send <- resp
 	}
 
 	for {
 		_, p, err := c.conn.ReadMessage()
 		if err != nil {
+			c.hub.unregister <- c
 			break
 		}
 		//ну отправка и отправка
@@ -60,7 +61,7 @@ func (c *Client) readPump() {
 					continue
 				}
 				resp := newCustomerMess(typeCustUpdate, nil)
-				resp.Data[typeCustInfo] = model.GetAllCustomers()
+				resp.Data[typeCustInfo] = model.GetAllInfo()
 				c.hub.broadcast <- resp
 			}
 		case typeDeleteCustomer:
@@ -75,7 +76,7 @@ func (c *Client) readPump() {
 					continue
 				}
 				resp := newCustomerMess(typeCustUpdate, nil)
-				resp.Data[typeCustInfo] = model.GetAllCustomers()
+				resp.Data[typeCustInfo] = model.GetAllInfo()
 				c.hub.broadcast <- resp
 			}
 		case typeUpdateCustomer:
@@ -90,9 +91,25 @@ func (c *Client) readPump() {
 					continue
 				}
 				resp := newCustomerMess(typeCustUpdate, nil)
-				resp.Data[typeCustInfo] = model.GetAllCustomers()
+				resp.Data[typeCustInfo] = model.GetAllInfo()
 				c.hub.broadcast <- resp
 			}
+		case typeCreateLicense:
+			{
+				var licCust model.LicenseInfo
+				_ = json.Unmarshal(p, &licCust)
+				err := licCust.License.Create(licCust.IdCust)
+				if err != nil {
+					resp := newCustomerMess(typeError, nil)
+					resp.Data["message"] = ErrorMessage{Error: err.Error()}
+					c.send <- resp
+					continue
+				}
+				resp := newCustomerMess(typeCustUpdate, nil)
+				resp.Data[typeCustInfo] = model.GetAllInfo()
+				c.hub.broadcast <- resp
+			}
+
 		default:
 			{
 				resp := newCustomerMess("type", nil)

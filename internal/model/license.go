@@ -15,7 +15,7 @@ var key = "yreRmn6JKVv1md1Yh1PptBIjtGrL8pRjo8sAp5ZPlR6zK8xjxnzt6mGi6mtjWPJ6lz1Hb
 
 //License информация о лицензии клиента (БД?)
 type License struct {
-	Id        int       `json:"id" ,sql:"id"`                 //уникальный номер сервера
+	Id        int       `json:"id" ,sql:"id"`                 //уникальный номер лицензии
 	NumDev    int       `json:"numdev" ,sql:"numdev"`         //количество устройств
 	NumAcc    int       `json:"numacc" ,sql:"numacc"`         //колическво аккаунтов
 	YaKey     string    `json:"yakey" ,sql:"yakey"`           //ключ яндекса
@@ -38,6 +38,11 @@ type Token struct {
 	TechEmail []string //почта для отправки сообщений в тех поддержку
 	Email     string   //почта фирмы
 	jwt.StandardClaims
+}
+
+type LicenseInfo struct {
+	IdCust  int     `json:"idCust"`
+	License License `json:"license"`
 }
 
 func (license *License) validate() error {
@@ -69,6 +74,11 @@ func (license *License) CreateLicense(idCustomer int) u.Response {
 	}
 
 	return u.Message(http.StatusOK, "license record created")
+}
+
+func (license *License) Create(idCustomer int) error {
+
+	return nil
 }
 
 func (license *License) CreateToken(clientID, tokenID int) u.Response {

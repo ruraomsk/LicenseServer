@@ -250,6 +250,7 @@ function fillLicenseTalbe() {
     });
 };
 
+//timeFormat преобразование переданного формата для отображения
 function timeFormat(time) {
     let date = new Date(time);
     const dateTimeFormat = new Intl.DateTimeFormat('ru', {
@@ -265,6 +266,7 @@ function timeFormat(time) {
 };
 
 
+//setLicenseDisableBut установка отображения кнопок
 function setLicenseDisableBut(flag) {
     $('#btl_update').prop('disabled', flag); //лицензия обновление
     $('#btl_delete').prop('disabled', flag); //лицензия удаление
@@ -272,7 +274,7 @@ function setLicenseDisableBut(flag) {
     $('#btt_copy').prop('disabled', flag); //ключ копирование
 };
 
-
+//copyTextToBuffer копирование текста в буфер обмена
 function copyTextToBuffer(value) {
     var $temp = $("<input>");
     $("body").append($temp);

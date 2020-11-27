@@ -99,8 +99,8 @@ func (customer *Customer) Get(id int) error {
 	return nil
 }
 
-//GetAllCustomers получить всех клиента
-func GetAllCustomers() []Customer {
+//GetAllInfo получить всех клиента
+func GetAllInfo() []Customer {
 	rows, err := db.GetDB().Query(`SELECT  
 											cust.id, cust.name, cust.address, cust.servers, cust.phone, cust.email, 
 											json_strip_nulls(json_agg(json_build_object('id',lic.id,
