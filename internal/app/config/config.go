@@ -10,6 +10,7 @@ var GlobalConfig *Config
 type Config struct {
 	ServerPort string   `toml:"server_port"`
 	LogPath    string   `toml:"log_path"`
+	GinLogPath string   `toml:"ginlog_path"`
 	DBConfig   DBConfig `toml:"database"`
 }
 

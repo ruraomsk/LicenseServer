@@ -12,6 +12,7 @@ var (
 	licenseTable = `
 	CREATE TABLE license (
 		id serial PRIMARY KEY,
+		custid integer,
 		numdev integer NOT NULL,
 		numacc integer NOT NULL,
 		yakey text,
@@ -25,7 +26,6 @@ var (
 		id serial PRIMARY KEY,
 		name text,
 		address text,
-		servers integer[],
 		phone text,
 		email text
 	);`

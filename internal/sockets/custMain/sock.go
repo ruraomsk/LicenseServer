@@ -2,6 +2,7 @@ package custMain
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/JanFant/LicenseServer/internal/model"
 	"github.com/JanFant/LicenseServer/internal/sockets"
 	"github.com/gorilla/websocket"
@@ -97,8 +98,11 @@ func (c *Client) readPump() {
 		case typeCreateLicense:
 			{
 				var licCust model.LicenseInfo
-				_ = json.Unmarshal(p, &licCust)
-				err := licCust.License.Create(licCust.IdCust)
+				err := json.Unmarshal(p, &licCust)
+				if err != nil {
+					fmt.Println(err.Error())
+				}
+				err = licCust.License.Create(licCust.IdCust)
 				if err != nil {
 					resp := newCustomerMess(typeError, nil)
 					resp.Data["message"] = ErrorMessage{Error: err.Error()}

@@ -107,6 +107,47 @@
             </thead>
         </table>
     </div>
+
+    <div id="licDialog" title="Создание лицензии" style="display:none">
+        <form class="needs-validation" id="licForm" novalidate>
+
+            <div class="form-group" id="numDevGr">
+                <label for="numDev">Кол-во устройств</label>
+                <input type="number" class="form-control" id="numDev" placeholder="Введите кол-во устройств" name="numDev" min="1" max="64000" required>
+                <div class="invalid-feedback">Заполните поле</div>
+            </div>
+
+            <div class="form-group" id="numAccGr">
+                <label for="numAcc">Кол-во аккаунтов</label>
+                <input type="number" class="form-control" id="numAcc" placeholder="Введите кол-во аккаунтов" name="numAcc" min="1" max="64000" required>
+                <div class="invalid-feedback">Заполните поле</div>
+            </div>
+
+            <div class="form-group" id="yakeyGr">
+                <label for="yakey">Яндекс ключ</label>
+                <input type="text" class="form-control" id="yakey" placeholder="Введите ключ карты Яндекс" name="yakey" required>
+                <div class="invalid-feedback">Заполните поле</div>
+            </div>
+
+            <div class="form-group" id="endTimeGr">
+                <label for="endTime">Время окончания</label>
+                <input type="date" class="form-control" id="endTime" placeholder="Введите время окончания" name="endTime" required>
+                <div class="invalid-feedback">Заполните поле</div>
+            </div>
+
+            <div class="form-group" id="emailListGr">
+                <label for="emailList">Почта тех. поддержки</label>
+                <input type="text" class="form-control" id="emailList" placeholder="Введите один или несколько адрессов через пробел" name="emailList" required>
+                <small id="helpName" class="form-text text-muted">example1@gmail.com example2@gmail.com example3@gmail.com</small>
+                <div class="invalid-feedback">Заполните поле</div>
+            </div>
+
+        </form>
+    </div>
+
+
+
+
     <script src="fs/js/customers.js"></script>
 </body>
 

@@ -7,17 +7,16 @@ import (
 	"github.com/JanFant/easyLog"
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
-	"github.com/lib/pq"
 )
 
 //Customer структура покупателя
 type Customer struct {
-	ID       int       `json:"id" ,sql:"id"`
-	Name     string    `json:"name" ,sql:"name"`
-	Address  string    `json:"address" ,sql:"address"`
-	Phone    string    `json:"phone" ,sql:"phone"`
-	Email    string    `json:"email" ,sql:"email"`
-	Servers  []int64   `json:"servers" ,sql:"servers"`
+	ID      int    `json:"id" ,sql:"id"`
+	Name    string `json:"name" ,sql:"name"`
+	Address string `json:"address" ,sql:"address"`
+	Phone   string `json:"phone" ,sql:"phone"`
+	Email   string `json:"email" ,sql:"email"`
+	//Servers  []int64   `json:"servers" ,sql:"servers"`
 	Licenses []License `json:"licenses" ,sql:"licenses"`
 }
 
@@ -28,13 +27,13 @@ func (customer *Customer) validate() error {
 		validation.Field(&customer.Address, validation.Required),
 		validation.Field(&customer.Phone, validation.Required, is.Int, validation.Length(11, 11)),
 		validation.Field(&customer.Email, is.Email, validation.Required),
-		validation.Field(&customer.Servers, validation.Length(0, 0)),
+		//validation.Field(&customer.Servers, validation.Length(0, 0)),
 	)
 }
 
 //Create создание клиента
 func (customer *Customer) Create() error {
-	customer.Servers = make([]int64, 0)
+	//customer.Servers = make([]int64, 0)
 	if err := customer.validate(); err != nil {
 		return err
 	}
@@ -49,8 +48,8 @@ func (customer *Customer) Create() error {
 			return errors.New("пользователь с таким именем уже существует")
 		}
 	}
-	_, err = db.GetDB().Exec(`INSERT INTO public.customers (name, address, phone, email,servers) VALUES ($1, $2, $3, $4, $5)`,
-		customer.Name, customer.Address, customer.Phone, customer.Email, pq.Array(customer.Servers))
+	_, err = db.GetDB().Exec(`INSERT INTO public.customers (name, address, phone, email) VALUES ($1, $2, $3, $4)`,
+		customer.Name, customer.Address, customer.Phone, customer.Email)
 	if err != nil {
 		return errors.New("ошибка связи с БД")
 	}
@@ -59,7 +58,11 @@ func (customer *Customer) Create() error {
 
 //Delete удалить клиента
 func (customer *Customer) Delete() error {
-	_, err := db.GetDB().Exec(`DELETE FROM public.customers WHERE id=$1`, customer.ID)
+	_, err := db.GetDB().Exec(`DELETE FROM public.customers WHERE id = $1`, customer.ID)
+	if err != nil {
+		return err
+	}
+	_, err = db.GetDB().Exec(`DELETE FROM public.license WHERE custid = $1`, customer.ID)
 	if err != nil {
 		return err
 	}
@@ -86,12 +89,12 @@ func (customer *Customer) Update() error {
 }
 
 func (customer *Customer) Get(id int) error {
-	rows, err := db.GetDB().Query(`SELECT id, name, address, servers, phone, email FROM public.customers WHERE id=$1`, id)
+	rows, err := db.GetDB().Query(`SELECT id, name, address, phone, email FROM public.customers WHERE id=$1`, id)
 	if err != nil {
 		return err
 	}
 	for rows.Next() {
-		err := rows.Scan(&customer.ID, &customer.Name, &customer.Address, pq.Array(&customer.Servers), &customer.Phone, &customer.Email)
+		err := rows.Scan(&customer.ID, &customer.Name, &customer.Address, &customer.Phone, &customer.Email)
 		if err != nil {
 			return err
 		}
@@ -102,7 +105,7 @@ func (customer *Customer) Get(id int) error {
 //GetAllInfo получить всех клиента
 func GetAllInfo() []Customer {
 	rows, err := db.GetDB().Query(`SELECT  
-											cust.id, cust.name, cust.address, cust.servers, cust.phone, cust.email, 
+											cust.id, cust.name, cust.address, cust.phone, cust.email, 
 											json_strip_nulls(json_agg(json_build_object('id',lic.id,
 																						'numdev',lic.numdev,
 																						'numacc',lic.numacc,
@@ -112,7 +115,7 @@ func GetAllInfo() []Customer {
 																						'tech_email',lic.tech_email,
 																						'endtime',lic.endtime))) as licenses
 											FROM public.customers as cust
-											LEFT JOIN public.license as lic ON lic.id = ANY(cust.servers)
+											LEFT JOIN public.license as lic ON lic.custid = cust.id
 											GROUP BY cust.id;`)
 	if err != nil {
 		easyLog.Error.Printf("|Message: %v", err.Error())
@@ -124,7 +127,7 @@ func GetAllInfo() []Customer {
 			temp        Customer
 			licensesStr string
 		)
-		err := rows.Scan(&temp.ID, &temp.Name, &temp.Address, pq.Array(&temp.Servers), &temp.Phone, &temp.Email, &licensesStr)
+		err := rows.Scan(&temp.ID, &temp.Name, &temp.Address, &temp.Phone, &temp.Email, &licensesStr)
 		if err != nil {
 			easyLog.Error.Printf("|Message: %v", err.Error())
 			return make([]Customer, 0)

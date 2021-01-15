@@ -1,7 +1,8 @@
 #Toml configs
 
 server_port = ":8086"
-log_path = "logfiles"
+log_path = "logfiles/custLog"
+ginlog_path = "logfiles/ginLog"
 
 [database]
 db_name = "agserv"

@@ -71,7 +71,7 @@ $(document).ready(function() {
         $('#custDialog').dialog({
             buttons: {
                 "Отправить": function() {
-                    sendCustomerDialog("updateCustomer")
+                    sendCustomerDialog("updateCustomer");
                 },
             },
         });
@@ -82,10 +82,24 @@ $(document).ready(function() {
         customerDeleteB();
     });
 
+
+    $('#btl_create').on('click', function() {
+        setCreateLicenseDialog();
+        $('#licDialog').dialog('open');
+        $('#licDialog').dialog({
+            buttons: {
+                "Отправить": function() {
+                    sendLicenseDialog("createLicense");
+                },
+            },
+        });
+    });
+
+
     $('#btt_copy').on('click', function() {
         let selected = $('#tableLicense').bootstrapTable('getSelections');
         copyTextToBuffer(selected[0].token);
-        successAlertMessage("Сообщение скопированно");
+        successAlertMessage("Ключ скопирован");
     });
 });
 
@@ -105,23 +119,31 @@ function fillCustomerTalbe() {
     let $table = $('#table');
     let selected = $table.bootstrapTable('getSelections');
     let toWrite = [];
+    let noCheck = false;
     customers.forEach(cust => {
         let temp = {
             id: cust.id,
             check: false,
             name: cust.name,
             address: cust.address,
-            numS: cust.servers.length,
+            numS: cust.licenses.length,
             phone: cust.phone,
             email: cust.email,
         };
         if (selected.length === 1) {
             if (cust.id === selected[0].id) {
                 temp.check = true;
+                noCheck = true;
+                fillLicenseTalbe();
             }
         }
         toWrite.push(temp);
     });
+    if (!noCheck) {
+        setClientDisableBut(true);
+        setLicenseDisableBut(true);
+        $('#cName').text("");
+    }
     $table.bootstrapTable('load', toWrite);
     $table.bootstrapTable('hideColumn', 'id');
     $table.bootstrapTable('scrollTo', 'top');
@@ -160,6 +182,23 @@ function setCreateCustomerDialog() {
     $('#email').val("");
 };
 
+//setCreateLicenseDialog диалог при создании лицензии
+function setCreateLicenseDialog() {
+    $('#licDialog').dialog({
+        autoOpen: false,
+        resizable: false,
+    });
+    $('#numDev').val(1);
+    $('#numAcc').val(1);
+    //todo создание шаблон
+    // $('#yakey').val("");
+    // $('#emailList').val("");
+    $('#yakey').val("asdasda");
+    $('#emailList').val("exam1@gmail.c exam2@eac.aas");
+
+    $('#endTime').val(new Date().toISOString().slice(0, 10));
+};
+
 //setUpdateDialog диалог при обновлении клиента
 function setCustomerUpdateDialog() {
     $('#custDialog').dialog({
@@ -196,6 +235,39 @@ function sendCustomerDialog(typeD) {
     ws.send(JSON.stringify(toSend));
     $('#custDialog').dialog('close');
 };
+
+//sendLicenseDialog отпрака информации из диалога клиентов на сервер
+function sendLicenseDialog(typeD) {
+    let licForm = $('#licForm')
+    if (!licForm[0].checkValidity()) {
+        licForm[0].classList.add('was-validated');
+        return
+    }
+    let selectCust = $('#table').bootstrapTable('getSelections');
+    let selectLic = $('#tableLicense').bootstrapTable('getSelections');
+
+    let toSend = {
+        type: typeD,
+        idCust: selectCust[0].id,
+        license: {
+            numdev: parseInt($('#numDev').val()),
+            numacc: parseInt($('#numAcc').val()),
+            yakey: $('#yakey').val(),
+            endtime: (new Date($('#endTime').val())).toISOString(),
+            tech_email: $('#emailList').val().split(" "),
+        },
+    };
+
+    if (selectLic.length === 0) {
+        toSend.license.id = 0;
+    } else {
+        toSend.license.id = selectLic[0].id;
+    }
+    console.log(toSend);
+    ws.send(JSON.stringify(toSend));
+    $('#licDialog').dialog('close');
+};
+
 
 //deleteB удаление клиента
 function customerDeleteB() {
@@ -256,10 +328,10 @@ function timeFormat(time) {
     const dateTimeFormat = new Intl.DateTimeFormat('ru', {
         day: "2-digit",
         month: "2-digit",
-        year: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
+        year: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        second: "numeric",
         timeZoneName: "short"
     });
     return dateTimeFormat.format(date);

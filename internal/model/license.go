@@ -5,7 +5,6 @@ import (
 	u "github.com/JanFant/LicenseServer/internal/app/utils"
 	"github.com/dgrijalva/jwt-go"
 	validation "github.com/go-ozzo/ozzo-validation"
-	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"net/http"
 	"time"
@@ -47,8 +46,8 @@ type LicenseInfo struct {
 
 func (license *License) validate() error {
 	return validation.ValidateStruct(license,
-		validation.Field(&license.NumDev, validation.Required, validation.Min(1), validation.Max(1000)),
-		validation.Field(&license.NumAcc, validation.Required, validation.Min(1), validation.Max(1000)),
+		validation.Field(&license.NumDev, validation.Required, validation.Min(1), validation.Max(64000)),
+		validation.Field(&license.NumAcc, validation.Required, validation.Min(1), validation.Max(64000)),
 		validation.Field(&license.YaKey, validation.Required),
 		validation.Field(&license.EndTime, validation.Required),
 		validation.Field(&license.TechEmail, validation.Required),
@@ -77,103 +76,118 @@ func (license *License) CreateLicense(idCustomer int) u.Response {
 }
 
 func (license *License) Create(idCustomer int) error {
-
+	err := license.validate()
+	if err != nil {
+		return err
+	}
+	//генерация ключа
+	license.TokenPass = u.GenerateRandomKey(100)
+	var idLicense int
+	row := db.GetDB().QueryRow(`INSERT INTO public.license (numdev, numacc, yakey, tokenpass, endtime, token, tech_email, custid) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+		license.NumDev, license.NumAcc, license.YaKey, license.TokenPass, string(pq.FormatTimestamp(license.EndTime)), license.Token, pq.Array(license.TechEmail), idCustomer)
+	if err := row.Scan(&idLicense); err != nil {
+		return err
+	}
+	//_, err = db.GetDB().Exec(`UPDATE public.customers SET servers = array_append(servers, $1) WHERE id = $2`, idLicense, idCustomer)
+	//if err != nil {
+	//	return err
+	//}
 	return nil
 }
 
 func (license *License) CreateToken(clientID, tokenID int) u.Response {
-	var customerInfo Customer
-	err := customerInfo.Get(clientID)
-	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
-	}
-	if customerInfo.ID == 0 {
-		return u.Message(http.StatusBadRequest, "this client doesn't exist")
-	}
-
-	err = db.GetDB().QueryRow("SELECT id, numdev, numacc, yakey, tokenpass, token, tech_email, endtime FROM public.license WHERE id = $1", tokenID).Scan(
-		&license.Id, &license.NumDev, &license.NumAcc, &license.YaKey, &license.TokenPass, &license.Token, pq.Array(&license.TechEmail), &license.EndTime)
-	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
-	}
-
-	have := false
-	for _, server := range customerInfo.Servers {
-		if server == int64(license.Id) {
-			have = true
-		}
-	}
-	if !have {
-		return u.Message(http.StatusInternalServerError, "this client doesn't own a license")
-	}
-
-	//создаем токен
-	tk := &Token{
-		Name:      customerInfo.Name,
-		YaKey:     license.YaKey,
-		Email:     customerInfo.Email,
-		NumDevice: license.NumDev,
-		Phone:     customerInfo.Phone,
-		TokenPass: license.TokenPass,
-		TechEmail: license.TechEmail,
-		NumAcc:    license.NumAcc,
-		Address:   customerInfo.Address,
-		Id:        license.Id}
-	//врямя выдачи токена
-	tk.IssuedAt = time.Now().Unix()
-	//время когда закончится действие токена
-	tk.ExpiresAt = license.EndTime.Unix()
-
-	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
-	tokenString, _ := token.SignedString([]byte(key))
-
-	//сохраняем токен в БД
-	_, err = db.GetDB().Exec(`UPDATE  public.license SET token = $1 WHERE id = $2`, tokenString, license.Id)
-	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
-	}
-
+	//var customerInfo Customer
+	//err := customerInfo.Get(clientID)
+	//if err != nil {
+	//	return u.Message(http.StatusInternalServerError, err.Error())
+	//}
+	//if customerInfo.ID == 0 {
+	//	return u.Message(http.StatusBadRequest, "this client doesn't exist")
+	//}
+	//
+	//err = db.GetDB().QueryRow("SELECT id, numdev, numacc, yakey, tokenpass, token, tech_email, endtime FROM public.license WHERE id = $1", tokenID).Scan(
+	//	&license.Id, &license.NumDev, &license.NumAcc, &license.YaKey, &license.TokenPass, &license.Token, pq.Array(&license.TechEmail), &license.EndTime)
+	//if err != nil {
+	//	return u.Message(http.StatusInternalServerError, err.Error())
+	//}
+	//
+	//have := false
+	//for _, server := range customerInfo.Servers {
+	//	if server == int64(license.Id) {
+	//		have = true
+	//	}
+	//}
+	//if !have {
+	//	return u.Message(http.StatusInternalServerError, "this client doesn't own a license")
+	//}
+	//
+	////создаем токен
+	//tk := &Token{
+	//	Name:      customerInfo.Name,
+	//	YaKey:     license.YaKey,
+	//	Email:     customerInfo.Email,
+	//	NumDevice: license.NumDev,
+	//	Phone:     customerInfo.Phone,
+	//	TokenPass: license.TokenPass,
+	//	TechEmail: license.TechEmail,
+	//	NumAcc:    license.NumAcc,
+	//	Address:   customerInfo.Address,
+	//	Id:        license.Id}
+	////врямя выдачи токена
+	//tk.IssuedAt = time.Now().Unix()
+	////время когда закончится действие токена
+	//tk.ExpiresAt = license.EndTime.Unix()
+	//
+	//token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
+	//tokenString, _ := token.SignedString([]byte(key))
+	//
+	////сохраняем токен в БД
+	//_, err = db.GetDB().Exec(`UPDATE  public.license SET token = $1 WHERE id = $2`, tokenString, license.Id)
+	//if err != nil {
+	//	return u.Message(http.StatusInternalServerError, err.Error())
+	//}
+	//
 	//Формируем ответ
 	resp := u.Message(http.StatusOK, "LicenseToken")
-	resp.Obj["token"] = tokenString
-	resp.Obj["tk"] = tk
+	//resp.Obj["token"] = tokenString
+	//resp.Obj["tk"] = tk
 	return resp
 }
 
 func GetAllLicenseInfo(id int) u.Response {
-	var customerInfo Customer
-	err := customerInfo.Get(id)
-	if err != nil {
-		return u.Message(http.StatusInternalServerError, err.Error())
-	}
-	if customerInfo.ID == 0 {
-		return u.Message(http.StatusBadRequest, "this client doesn't exist")
-	}
-	var allLicense []License
-	if len(customerInfo.Servers) > 0 {
-		query, args, err := sqlx.In("SELECT id, numdev, numacc, yakey, tokenpass, token, tech_email, endtime FROM public.license WHERE id IN (?)", customerInfo.Servers)
-		if err != nil {
-			return u.Message(http.StatusInternalServerError, err.Error())
-		}
-		query = db.GetDB().Rebind(query)
-		rows, err := db.GetDB().Queryx(query, args...)
-		if err != nil {
-			return u.Message(http.StatusInternalServerError, err.Error())
-		}
-		for rows.Next() {
-			var temp License
-			err := rows.Scan(&temp.Id, &temp.NumDev, &temp.NumAcc, &temp.YaKey, &temp.TokenPass, &temp.Token, pq.Array(&temp.TechEmail), &temp.EndTime)
-			if err != nil {
-				return u.Message(http.StatusInternalServerError, err.Error())
-			}
-			allLicense = append(allLicense, temp)
-		}
-	}
-	if len(allLicense) == 0 {
-		allLicense = make([]License, 0)
-	}
+	//var customerInfo Customer
+	//err := customerInfo.Get(id)
+	//if err != nil {
+	//	return u.Message(http.StatusInternalServerError, err.Error())
+	//}
+	//if customerInfo.ID == 0 {
+	//	return u.Message(http.StatusBadRequest, "this client doesn't exist")
+	//}
+	//var allLicense []License
+	//if len(customerInfo.Servers) > 0 {
+	//	query, args, err := sqlx.In("SELECT id, numdev, numacc, yakey, tokenpass, token, tech_email, endtime FROM public.license WHERE id IN (?)", customerInfo.Servers)
+	//	if err != nil {
+	//		return u.Message(http.StatusInternalServerError, err.Error())
+	//	}
+	//	query = db.GetDB().Rebind(query)
+	//	rows, err := db.GetDB().Queryx(query, args...)
+	//	if err != nil {
+	//		return u.Message(http.StatusInternalServerError, err.Error())
+	//	}
+	//	for rows.Next() {
+	//		var temp License
+	//		err := rows.Scan(&temp.Id, &temp.NumDev, &temp.NumAcc, &temp.YaKey, &temp.TokenPass, &temp.Token, pq.Array(&temp.TechEmail), &temp.EndTime)
+	//		if err != nil {
+	//			return u.Message(http.StatusInternalServerError, err.Error())
+	//		}
+	//		allLicense = append(allLicense, temp)
+	//	}
+	//}
+	//if len(allLicense) == 0 {
+	//	allLicense = make([]License, 0)
+	//}
 	resp := u.Message(http.StatusOK, "all license info")
-	resp.Obj["customer"] = customerInfo
-	resp.Obj["licenses"] = allLicense
+	//resp.Obj["customer"] = customerInfo
+	//resp.Obj["licenses"] = allLicense
 	return resp
 }
