@@ -9,6 +9,8 @@ var (
 	typeDeleteCustomer = "deleteCustomer"
 	typeUpdateCustomer = "updateCustomer"
 	typeCreateLicense  = "createLicense"
+	typeDeleteLicense  = "deleteLicense"
+	typeUpdateLicense  = "updateLicense"
 	errParseType       = "сервер не смог обработать запрос"
 )
 

@@ -88,10 +88,29 @@ func (license *License) Create(idCustomer int) error {
 	if err := row.Scan(&idLicense); err != nil {
 		return err
 	}
-	//_, err = db.GetDB().Exec(`UPDATE public.customers SET servers = array_append(servers, $1) WHERE id = $2`, idLicense, idCustomer)
-	//if err != nil {
-	//	return err
-	//}
+	return nil
+}
+
+func (license *License) Update(idCustomer int) error {
+	err := license.validate()
+	if err != nil {
+		return err
+	}
+	//генерация ключа
+	license.TokenPass = u.GenerateRandomKey(100)
+	_, err = db.GetDB().Exec(`UPDATE public.license SET numdev = $1, numacc = $2, yakey = $3, tokenpass = $4, endtime = $5, token = $6, tech_email = $7 WHERE id = $8 AND custid = $9`,
+		license.NumDev, license.NumAcc, license.YaKey, license.TokenPass, string(pq.FormatTimestamp(license.EndTime)), license.Token, pq.Array(license.TechEmail), license.Id, idCustomer)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (license *License) Delete(idCust int) error {
+	_, err := db.GetDB().Exec(`DELETE FROM public.license WHERE id = $1 and custid = $2`, license.Id, idCust)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

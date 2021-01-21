@@ -83,6 +83,7 @@ $(document).ready(function() {
     });
 
 
+    //кнопка лицензия Создание
     $('#btl_create').on('click', function() {
         setCreateLicenseDialog();
         $('#licDialog').dialog('open');
@@ -95,6 +96,23 @@ $(document).ready(function() {
         });
     });
 
+    //кнопка лицензии Обновить
+    $('#btl_update').on('click', function() {
+        setlicenseUpdateDialog();
+        $('#licDialog').dialog('open');
+        $('#licDialog').dialog({
+            buttons: {
+                "Отправить": function() {
+                    sendLicenseDialog("updateLicense");
+                },
+            },
+        });
+    });
+
+    //кнопка лицензия Удаление
+    $('#btl_delete').on('click', function() {
+        licenseDeleteB();
+    });
 
     $('#btt_copy').on('click', function() {
         let selected = $('#tableLicense').bootstrapTable('getSelections');
@@ -190,16 +208,12 @@ function setCreateLicenseDialog() {
     });
     $('#numDev').val(1);
     $('#numAcc').val(1);
-    //todo создание шаблон
-    // $('#yakey').val("");
-    // $('#emailList').val("");
-    $('#yakey').val("asdasda");
-    $('#emailList').val("exam1@gmail.c exam2@eac.aas");
-
+    $('#yakey').val("");
+    $('#emailList').val("");
     $('#endTime').val(new Date().toISOString().slice(0, 10));
 };
 
-//setUpdateDialog диалог при обновлении клиента
+//setCustomerUpdateDialog диалог при обновлении клиента
 function setCustomerUpdateDialog() {
     $('#custDialog').dialog({
         autoOpen: false,
@@ -210,7 +224,22 @@ function setCustomerUpdateDialog() {
     $('#address').val(selected[0].address);
     $('#phone').val(selected[0].phone);
     $('#email').val(selected[0].email);
-}
+};
+
+//setlicenseUpdateDialog диалог при обновлении лицензии
+function setlicenseUpdateDialog() {
+    $('#licDialog').dialog({
+        autoOpen: false,
+        resizable: false,
+    });
+    let selected = $('#tableLicense').bootstrapTable('getSelections');
+    $('#numDev').val(selected[0].numDev);
+    $('#numAcc').val(selected[0].numAcc);
+    $('#yakey').val(selected[0].yaKey);
+    let time = selected[0].endTime.slice(0, 10).split('.');
+    $('#endTime').val(time[2] + "-" + time[1] + "-" + time[0]);
+    $('#emailList').val(selected[0].email.toString().replaceAll(',', ' '));
+};
 
 //sendCustomerDialog отпрака информации из диалога клиентов на сервер
 function sendCustomerDialog(typeD) {
@@ -276,8 +305,22 @@ function customerDeleteB() {
         type: "deleteCustomer",
         id: selected[0].id,
     };
-    $('#btc_update').prop('disabled', true);
-    $('#btc_delete').prop('disabled', true);
+    setClientDisableBut(true);
+    ws.send(JSON.stringify(toSend));
+};
+
+//deleteB удаление лицензии
+function licenseDeleteB() {
+    let selCust = $('#table').bootstrapTable('getSelections');
+    let selLic = $('#tableLicense').bootstrapTable('getSelections');
+    let toSend = {
+        type: "deleteLicense",
+        idCust: selCust[0].id,
+        license: {
+            id: selLic[0].id,
+        },
+    };
+    setLicenseDisableBut(true);
     ws.send(JSON.stringify(toSend));
 };
 
@@ -295,9 +338,11 @@ function fillLicenseTalbe() {
             numDev: lic.numdev,
             numAcc: lic.numacc,
             email: lic.tech_email,
+            yaKey: lic.yakey,
             token: lic.token,
             endTime: timeFormat(lic.endtime),
         };
+        console.log(timeFormat(lic.endtime));
         if (selectedLic.length === 1) {
             if (lic.id === selectedLic[0].id) {
                 temp.check = true;

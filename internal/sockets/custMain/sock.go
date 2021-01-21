@@ -2,7 +2,6 @@ package custMain
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/JanFant/LicenseServer/internal/model"
 	"github.com/JanFant/LicenseServer/internal/sockets"
 	"github.com/gorilla/websocket"
@@ -98,11 +97,8 @@ func (c *Client) readPump() {
 		case typeCreateLicense:
 			{
 				var licCust model.LicenseInfo
-				err := json.Unmarshal(p, &licCust)
-				if err != nil {
-					fmt.Println(err.Error())
-				}
-				err = licCust.License.Create(licCust.IdCust)
+				_ = json.Unmarshal(p, &licCust)
+				err := licCust.License.Create(licCust.IdCust)
 				if err != nil {
 					resp := newCustomerMess(typeError, nil)
 					resp.Data["message"] = ErrorMessage{Error: err.Error()}
@@ -113,7 +109,36 @@ func (c *Client) readPump() {
 				resp.Data[typeCustInfo] = model.GetAllInfo()
 				c.hub.broadcast <- resp
 			}
-
+		case typeUpdateLicense:
+			{
+				var licCust model.LicenseInfo
+				_ = json.Unmarshal(p, &licCust)
+				err := licCust.License.Update(licCust.IdCust)
+				if err != nil {
+					resp := newCustomerMess(typeError, nil)
+					resp.Data["message"] = ErrorMessage{Error: err.Error()}
+					c.send <- resp
+					continue
+				}
+				resp := newCustomerMess(typeCustUpdate, nil)
+				resp.Data[typeCustInfo] = model.GetAllInfo()
+				c.hub.broadcast <- resp
+			}
+		case typeDeleteLicense:
+			{
+				var licCust model.LicenseInfo
+				_ = json.Unmarshal(p, &licCust)
+				err := licCust.License.Delete(licCust.IdCust)
+				if err != nil {
+					resp := newCustomerMess(typeError, nil)
+					resp.Data["message"] = ErrorMessage{Error: err.Error()}
+					c.send <- resp
+					continue
+				}
+				resp := newCustomerMess(typeCustUpdate, nil)
+				resp.Data[typeCustInfo] = model.GetAllInfo()
+				c.hub.broadcast <- resp
+			}
 		default:
 			{
 				resp := newCustomerMess("type", nil)
