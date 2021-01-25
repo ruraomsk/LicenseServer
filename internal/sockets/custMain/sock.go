@@ -139,6 +139,24 @@ func (c *Client) readPump() {
 				resp.Data[typeCustInfo] = model.GetAllInfo()
 				c.hub.broadcast <- resp
 			}
+		case typeReCreateLicense:
+			{
+				var temp = struct {
+					IdLic  int `json:"idLic"`
+					IdCust int `json:"idCust"`
+				}{}
+				_ = json.Unmarshal(p, &temp)
+				err := model.CreateToken(temp.IdLic, temp.IdCust)
+				if err != nil {
+					resp := newCustomerMess(typeError, nil)
+					resp.Data["message"] = ErrorMessage{Error: err.Error()}
+					c.send <- resp
+					continue
+				}
+				resp := newCustomerMess(typeCustUpdate, nil)
+				resp.Data[typeCustInfo] = model.GetAllInfo()
+				c.hub.broadcast <- resp
+			}
 		default:
 			{
 				resp := newCustomerMess("type", nil)

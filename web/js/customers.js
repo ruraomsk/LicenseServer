@@ -119,6 +119,10 @@ $(document).ready(function() {
         copyTextToBuffer(selected[0].token);
         successAlertMessage("Ключ скопирован");
     });
+
+    $('#btt_recreate').on('click', function() {
+        reCreateLicense();
+    });
 });
 
 function successAlertMessage(message) {
@@ -390,6 +394,19 @@ function setLicenseDisableBut(flag) {
     $('#btt_recreate').prop('disabled', flag); //ключ пересоздание
     $('#btt_copy').prop('disabled', flag); //ключ копирование
 };
+
+
+function reCreateLicense() {
+    let selCust = $('#table').bootstrapTable('getSelections');
+    let selLic = $('#tableLicense').bootstrapTable('getSelections');
+    let toSend = {
+        type: "recreateLicense",
+        idCust: selCust[0].id,
+        idLic: selLic[0].id,
+    };
+    ws.send(JSON.stringify(toSend));
+};
+
 
 //copyTextToBuffer копирование текста в буфер обмена
 function copyTextToBuffer(value) {

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"github.com/JanFant/LicenseServer/internal/app/db"
 	u "github.com/JanFant/LicenseServer/internal/app/utils"
 	"github.com/dgrijalva/jwt-go"
@@ -88,6 +89,10 @@ func (license *License) Create(idCustomer int) error {
 	if err := row.Scan(&idLicense); err != nil {
 		return err
 	}
+	err = CreateToken(idLicense, idCustomer)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -103,11 +108,62 @@ func (license *License) Update(idCustomer int) error {
 	if err != nil {
 		return err
 	}
+	err = CreateToken(license.Id, idCustomer)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
 func (license *License) Delete(idCust int) error {
 	_, err := db.GetDB().Exec(`DELETE FROM public.license WHERE id = $1 and custid = $2`, license.Id, idCust)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func CreateToken(idLic, idCust int) error {
+	var (
+		customerInfo Customer
+		license      License
+	)
+	err := customerInfo.Get(idCust)
+	if err != nil {
+		return err
+	}
+	if customerInfo.ID == 0 {
+		return errors.New("this client doesn't exist")
+	}
+
+	err = db.GetDB().QueryRow("SELECT id, numdev, numacc, yakey, tokenpass, tech_email, endtime FROM public.license WHERE id = $1 and custid = $2", idLic, idCust).Scan(
+		&license.Id, &license.NumDev, &license.NumAcc, &license.YaKey, &license.TokenPass, pq.Array(&license.TechEmail), &license.EndTime)
+	if err != nil {
+		return err
+	}
+
+	//создаем токен
+	tk := &Token{
+		Name:      customerInfo.Name,
+		YaKey:     license.YaKey,
+		Email:     customerInfo.Email,
+		NumDevice: license.NumDev,
+		Phone:     customerInfo.Phone,
+		TokenPass: license.TokenPass,
+		TechEmail: license.TechEmail,
+		NumAcc:    license.NumAcc,
+		Address:   customerInfo.Address,
+		Id:        license.Id}
+	//врямя выдачи токена
+	tk.IssuedAt = time.Now().Unix()
+	//время когда закончится действие токена
+	tk.ExpiresAt = license.EndTime.Unix()
+
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
+	tokenString, _ := token.SignedString([]byte(key))
+
+	//сохраняем токен в БД
+	_, err = db.GetDB().Exec(`UPDATE  public.license SET token = $1 WHERE id = $2 and custid = $3`, tokenString, license.Id, idCust)
 	if err != nil {
 		return err
 	}

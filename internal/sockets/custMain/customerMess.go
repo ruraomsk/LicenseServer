@@ -1,17 +1,18 @@
 package custMain
 
 var (
-	typeError          = "error"
-	typeClose          = "close"
-	typeCustInfo       = "custInfo"
-	typeCustUpdate     = "custUpdate"
-	typeCreateCustomer = "createCustomer"
-	typeDeleteCustomer = "deleteCustomer"
-	typeUpdateCustomer = "updateCustomer"
-	typeCreateLicense  = "createLicense"
-	typeDeleteLicense  = "deleteLicense"
-	typeUpdateLicense  = "updateLicense"
-	errParseType       = "сервер не смог обработать запрос"
+	typeError           = "error"
+	typeClose           = "close"
+	typeCustInfo        = "custInfo"
+	typeCustUpdate      = "custUpdate"
+	typeCreateCustomer  = "createCustomer"
+	typeDeleteCustomer  = "deleteCustomer"
+	typeUpdateCustomer  = "updateCustomer"
+	typeCreateLicense   = "createLicense"
+	typeDeleteLicense   = "deleteLicense"
+	typeUpdateLicense   = "updateLicense"
+	typeReCreateLicense = "recreateLicense"
+	errParseType        = "сервер не смог обработать запрос"
 )
 
 type CustMess struct {
