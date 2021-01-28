@@ -30,7 +30,7 @@
     <div class="container-fluid row">
         <div class="btn-group-toggle mr-auto m-2 p-2 col-sm-5 ">
             <button type="button" class="btn btn-primary" id="btc_create">Создать</button>
-            <button type="button" class="btn btn-primary" id="btc_update">Обновить</button>
+            <button type="button" class="btn btn-primary" id="btc_update">Корректировать</button>
             <button type="button" class="btn btn-primary" id="btc_delete">Удалить</button>
         </div>
         <div class="col-md-6 ">
@@ -44,7 +44,9 @@
                     <th class="sorting" data-field="check" data-checkbox="true"></th>
                     <th data-field="id" hidden>id</th>
                     <th data-field="name" data-sortable="true">Название</th>
-                    <th data-field="address" data-sortable="true">Адресс</th>
+                    <th data-field="holder" data-sortable="true">Держатель</th>
+                    <th data-field="url" data-sortable="true">Ресурс</th>
+                    <th data-field="address" data-sortable="true">Адрес сервера</th>
                     <th data-field="numS">Кол-во лицензий</th>
                     <th data-field="phone" data-sortable="true">Телефон</th>
                     <th data-field="email" data-sortable="true">Эл. почта</th>
@@ -58,6 +60,16 @@
                 <label for="name">Название</label>
                 <input type="text" class="form-control" id="name" placeholder="Введите название" name="name" required>
                 <small id="helpName" class="form-text text-muted">Название организации от трех символов</small>
+                <div class="invalid-feedback">Заполните поле</div>
+            </div>
+            <div class="form-group" id="holderGr">
+                <label for="holder">Держатель</label>
+                <input type="text" class="form-control" id="holder" placeholder="Держатель лицензии" name="holder" required>
+                <div class="invalid-feedback">Заполните поле</div>
+            </div>
+            <div class="form-group" id="urlGr">
+                <label for="url">Ресурс</label>
+                <input type="text" class="form-control" id="url" placeholder="Ресурс" name="url" required>
                 <div class="invalid-feedback">Заполните поле</div>
             </div>
             <div class="form-group" id="addressGr">
@@ -82,7 +94,7 @@
         <div class="btn-group-toggle mr-auto m-2 p-2 col-sm-5 ">
             <h5>Клиент: <span class="badge badge-secondary" id="cName"></span></h5>
             <button type="button" class="btn btn-primary" id="btl_create">Создать</button>
-            <button type="button" class="btn btn-primary" id="btl_update">Обновить</button>
+            <button type="button" class="btn btn-primary" id="btl_update">Корректировать</button>
             <button type="button" class="btn btn-primary" id="btl_delete">Удалить</button>
         </div>
         <div class="btn-group-toggle mr-auto m-2 p-2 col-sm-5 ">

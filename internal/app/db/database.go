@@ -25,6 +25,8 @@ var (
 	CREATE TABLE customers (
 		id serial PRIMARY KEY,
 		name text,
+		holder text,
+		url text,
 		address text,
 		phone text,
 		email text

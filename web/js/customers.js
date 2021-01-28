@@ -147,6 +147,8 @@ function fillCustomerTalbe() {
             id: cust.id,
             check: false,
             name: cust.name,
+            holder: cust.holder,
+            url: cust.url,
             address: cust.address,
             numS: cust.licenses.length,
             phone: cust.phone,
@@ -199,6 +201,8 @@ function setCreateCustomerDialog() {
         resizable: false,
     });
     $('#name').val("");
+    $('#holder').val("");
+    $('#url').val("");
     $('#address').val("");
     $('#phone').val("");
     $('#email').val("");
@@ -225,6 +229,8 @@ function setCustomerUpdateDialog() {
     });
     let selected = $('#table').bootstrapTable('getSelections');
     $('#name').val(selected[0].name);
+    $('#holder').val(selected[0].holder);
+    $('#url').val(selected[0].url);
     $('#address').val(selected[0].address);
     $('#phone').val(selected[0].phone);
     $('#email').val(selected[0].email);
@@ -256,6 +262,8 @@ function sendCustomerDialog(typeD) {
     let toSend = {
         type: typeD,
         name: $('#name').val(),
+        holder: $('#holder').val(),
+        url: $('#url').val(),
         address: $('#address').val(),
         phone: $('#phone').val(),
         email: $('#email').val(),
@@ -305,27 +313,31 @@ function sendLicenseDialog(typeD) {
 //deleteB удаление клиента
 function customerDeleteB() {
     let selected = $('#table').bootstrapTable('getSelections');
-    let toSend = {
-        type: "deleteCustomer",
-        id: selected[0].id,
+    if (confirm("Вы хотите удалить: " + selected[0].name)) {
+        let toSend = {
+            type: "deleteCustomer",
+            id: selected[0].id,
+        };
+        setClientDisableBut(true);
+        ws.send(JSON.stringify(toSend));
     };
-    setClientDisableBut(true);
-    ws.send(JSON.stringify(toSend));
 };
 
 //deleteB удаление лицензии
 function licenseDeleteB() {
     let selCust = $('#table').bootstrapTable('getSelections');
     let selLic = $('#tableLicense').bootstrapTable('getSelections');
-    let toSend = {
-        type: "deleteLicense",
-        idCust: selCust[0].id,
-        license: {
-            id: selLic[0].id,
-        },
+    if (confirm("Вы хотите удалить лицензию?")) {
+        let toSend = {
+            type: "deleteLicense",
+            idCust: selCust[0].id,
+            license: {
+                id: selLic[0].id,
+            },
+        };
+        setLicenseDisableBut(true);
+        ws.send(JSON.stringify(toSend));
     };
-    setLicenseDisableBut(true);
-    ws.send(JSON.stringify(toSend));
 };
 
 
